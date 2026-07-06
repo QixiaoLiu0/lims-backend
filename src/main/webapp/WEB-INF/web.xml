@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
+                             http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <display-name>ARIS LIMS Application</display-name>
+
+    <listener>
+        <listener-class>ca.sait.aris.lims.listener.AppConfigListener</listener-class>
+    </listener>
+
+
+    <filter>
+        <filter-name>CorsFilter</filter-name>
+        <filter-class>ca.sait.aris.lims.filter.CorsFilter</filter-class>
+    </filter>
+    
+    
+    <filter>
+        <filter-name>JwtAuthFilter</filter-name>
+        <filter-class>ca.sait.aris.lims.filter.JwtAuthFilter</filter-class>
+    </filter>
+
+
+    <filter-mapping>
+        <filter-name>CorsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>ApiGatewayServlet</servlet-name>
+        <servlet-class>ca.sait.aris.lims.servlet.ApiGatewayServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ApiGatewayServlet</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>
