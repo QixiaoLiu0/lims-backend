@@ -55,11 +55,11 @@ public class Parameter {
         this.unit = unit;
     }
 
-    public String getlimit() {
+    public String getLimit() {
         return limit;
     }
 
-    public void setlimit(String limit) {
+    public void setLimit(String limit) {
         this.limit = limit;
     }
 }
