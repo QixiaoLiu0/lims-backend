@@ -18,7 +18,6 @@ public class TestType {
     
     public TestType() {
     }
-
     
     public TestType(Integer testTypeId, String typeName, String description, BigDecimal requiredVolume, 
                     String bgColor, String iconColor, String borderColor, Integer isActive) {
@@ -32,11 +31,6 @@ public class TestType {
         this.isActive = isActive;
     }
 
-    
-    
-    
-    
-    
     
     // --- Getters & Setters ---
     

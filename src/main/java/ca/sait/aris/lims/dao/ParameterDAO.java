@@ -18,6 +18,7 @@ public class ParameterDAO extends BaseJdbcDao {
     public List<Parameter> selectParametersByTestTypeId(int testTypeId) throws Exception {
         String sql = "SELECT parameter_id, test_type_id, parameter_name, unit, 'limit'" +
                 "FROM parameter WHERE test_type_id = ? ORDER BY parameter_id";
+
         return executeQuery(sql, Parameter.class, testTypeId);
     }
 
@@ -32,6 +33,7 @@ public class ParameterDAO extends BaseJdbcDao {
                 entity.getParameterName(),
                 entity.getUnit(),
                 entity.getLimit());
+
         entity.setParameterId(generatedId);
     }
 
