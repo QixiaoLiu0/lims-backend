@@ -19,21 +19,7 @@ public class Parameter {
         this.limit = limit;
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     // --- Getters & Setters ---
     
     
@@ -69,11 +55,11 @@ public class Parameter {
         this.unit = unit;
     }
 
-    public String getLimit() {
+    public String getSampleLimit() {
         return limit;
     }
 
-    public void setLimit(String limit) {
+    public void setSampleLimit(String limit) {
         this.limit = limit;
     }
 }
