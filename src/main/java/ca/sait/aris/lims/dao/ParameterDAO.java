@@ -31,7 +31,7 @@ public class ParameterDAO extends BaseJdbcDao {
                 entity.getTestTypeId(),
                 entity.getParameterName(),
                 entity.getUnit(),
-                entity.getSampleLimit());
+                entity.getLimit());
         entity.setParameterId(generatedId);
     }
 
@@ -44,7 +44,7 @@ public class ParameterDAO extends BaseJdbcDao {
         executeUpdate(sql,
         existingEntity.getParameterName(),
         existingEntity.getUnit(),
-        existingEntity.getSampleLimit(),
+        existingEntity.getLimit(),
         existingEntity.getParameterId());
     }
 
