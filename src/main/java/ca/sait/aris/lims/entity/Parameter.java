@@ -55,11 +55,11 @@ public class Parameter {
         this.unit = unit;
     }
 
-    public String getSampleLimit() {
+    public String getlimit() {
         return limit;
     }
 
-    public void setSampleLimit(String limit) {
+    public void setlimit(String limit) {
         this.limit = limit;
     }
 }
