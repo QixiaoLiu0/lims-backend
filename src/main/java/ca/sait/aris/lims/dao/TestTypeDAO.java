@@ -13,21 +13,29 @@ import ca.sait.aris.lims.entity.TestType;
  */
 public class TestTypeDAO extends BaseJdbcDao {
 
+    private static final String BASE_COLUMNS = "test_type_id, type_name, description, required_volume, bg_color, icon_color, border_color, is_active";
+
     /**
      * 1. Insert a record into the main table and return the auto-incrementing primary key.
      */
     public int insertTestType(TestType testTypeEntity) throws Exception {
-    	//TODO
-		return 0;
-        
+    	String sql = "INSERT INTO test_type (type_name, description, required_volumet, bg_color, icon_color, border_color, is_active) " + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+		return executeInsertAndReturnKey(sql,
+                testTypeEntity.getTypeName(),
+                testTypeEntity.getDescription(),
+                testTypeEntity.getRequiredVolume(),
+                testTypeEntity.getBgColor(),
+                testTypeEntity.getIconColor(),
+                testTypeEntity.getBorderColor(),
+                testTypeEntity.getIsActive());
     }
 
     /**
      * 2. Query all records in the main table
      */
     public List<TestType> selectAllTestTypes() throws Exception {
-    	//TODO
-		return null;
+    	String sql = "SELECT " + BASE_COLUMNS + " FROM test_type ORDER BY test_type_id";
+        return executeQuery(sql, TestType.class);
     	// As long as the column names (underscores) returned by the SELECT query match the attribute names (camel case) of the Entity,
     	//executeQuery will automatically assemble the List for you using reflection at the underlying level.
         
@@ -37,8 +45,8 @@ public class TestTypeDAO extends BaseJdbcDao {
      * 3. Query for a single record by ID
      */
     public TestType selectTestTypeById(int testTypeId) throws Exception {
-    	//TODO
-		return null;
+    	String sql = "SELECT " + BASE_COLUMNS + " FROM test_type WHERE test_type_id = ?";
+        return executeQueryForObject(sql, TestType.class, testTypeId);
     	
     }
 
@@ -46,8 +54,17 @@ public class TestTypeDAO extends BaseJdbcDao {
      * 4. Update the basic fields of the main table
      */
     public boolean updateTestType(TestType entity) throws Exception {
-    	//TODO
-		return false;
+        String sql = "UPDATE test_type SET type_name = ?, description = ?, required_volume = ?, " + "bg_color = ?, icon_color = ?, border_color = ?, is_active = ? " + "WHERE test_type_id = ?";
+        int rowsAffected = executeUpdate(sql,
+                entity.getTypeName(),
+                entity.getDescription(),
+                entity.getRequiredVolume(),
+                entity.getBgColor(),
+                entity.getIconColor(),
+                entity.getBorderColor(),
+                entity.getIsActive(),
+                entity.getTestTypeId());
+		return rowsAffected > 0;
         
     }
 }
