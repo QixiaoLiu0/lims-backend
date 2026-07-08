@@ -67,11 +67,18 @@ public abstract class BaseJdbcDao {
                         if (columnValue != null) {
                         	// 2: Mapping database underscore fields to Java camelCase attributes
                             String fieldName = underscoreToCamelCase(columnName);
-                            try {
-                                Field field = clazz.getDeclaredField(fieldName);
-                                field.setAccessible(true);
-                                field.set(obj, columnValue);
-                            } catch (NoSuchFieldException e) {
+                            Field field = findField(clazz, fieldName);
+                            if (field != null) {
+                                field.setAccessible((true));
+                                try {
+                                    field.set(obj, columnValue);
+                                } catch (IllegalArgumentException e) {
+                                    System.err.println("[BaseJdbcDao] Type mistmatch for field '" + fieldName +
+                                            "' on " + clazz.getSimpleName() + ": expected " + field.getType().getSimpleName() +
+                                            " but got " + columnValue.getClass().getSimpleName());
+                                }
+                            } else {
+                                System.err.println("[BaseJdbcDao] No matching field '" + fieldName + "' on " + clazz.getSimpleName());
                             }
                         }
                     }
@@ -128,5 +135,20 @@ public abstract class BaseJdbcDao {
             }
         }
         return camelCase.toString();
+    }
+    /**
+     * Helper: Searches for a declared field by name, walking up chain if not found on given class directly
+     * Prevents silent mapping failures.
+     */
+    private Field findField(Class<?> clazz, String fieldName) {
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            try {
+                return current.getDeclaredField((fieldName));
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+        return null;
     }
 }
