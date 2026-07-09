@@ -21,16 +21,31 @@ public class TestTypeController {
      * 1. Create Test Type (POST /api/test-types)
      */
     public RespResult<Integer> createTestType(TestTypeSaveReqDTO reqDto) {
-    	//TODO
-		return null;
+    	try {
+            int newId = testTypeService.createTestType(reqDto);
+            return RespResult.success(newId);
+        } catch (IllegalArgumentException e) {
+            // Bad input from client
+            return RespResult.error(400, e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[TestTypeController] createTestType failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to create test type.");
+        }
 	}
 
     /**
      * 2. Get Test Type List (GET /api/test-types)
      */
     public RespResult<List<TestTypeListRespDTO>> getTestTypeList() {
-    	//TODO
-		return null;
+    	try {
+            List<TestTypeListRespDTO> list = testTypeService.listTestTypes();
+            return RespResult.success(list);
+        } catch (Exception e){
+           System.err.println("[TestTypeController] getTestTypeList failed: " + e.getMessage());
+           e.printStackTrace();
+           return RespResult.error("Failed to retrieve test type list.");
+        }
         
     }
 
@@ -38,8 +53,18 @@ public class TestTypeController {
      * 3. Get Test Type Detail (GET /api/test-types/{id})
      */
     public RespResult<TestTypeRespDTO> getTestTypeDetail(int testTypeId) {
-    	//TODO
-		return null;
+    	try {
+            TestTypeRespDTO detail = testTypeService.getTestTypeDetail(testTypeId);
+            if (detail == null) {
+                return RespResult.error(404, "Test type not found: " + testTypeId);
+            }
+            return RespResult.success(detail);
+        } catch (Exception e) {
+            System.err.println("[TestTypeController] getTestTypeDetail failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to retrieve test type data.");
+        }
+
     }
 
     /**
@@ -47,7 +72,19 @@ public class TestTypeController {
      * Changed return token to RespResult<Object> to strictly match API spec ("data": null).
      */
     public RespResult<Object> updateTestType(int testTypeId, TestTypeSaveReqDTO reqDto) {
-    	//TODO
-		return null;
+    	try {
+            boolean updated = testTypeService.updateTestType(testTypeId, reqDto);
+            if (!updated) {
+                return RespResult.error(404, "Test type not found: " + testTypeId);
+            }
+            return RespResult.success();
+        } catch (IllegalArgumentException e) {
+            // Bad input from client
+            return RespResult.error(400, e.getMessage());
+        } catch (Exception e){
+            System.err.println("[TestTypeController] updateTestType failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to update test type.");
+        }
     }
 }
