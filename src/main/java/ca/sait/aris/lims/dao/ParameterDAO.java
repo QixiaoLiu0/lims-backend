@@ -26,7 +26,7 @@ public class ParameterDAO extends BaseJdbcDao {
      */
     public void insertParameter(Parameter entity) throws Exception {
         String sql = "INSERT INTO parameter (test_type_id, parameter_name, unit, 'limit') " +
-                "VALUES (?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?)";
         int generatedId = executeInsertAndReturnKey(sql,
                 entity.getTestTypeId(),
                 entity.getParameterName(),
