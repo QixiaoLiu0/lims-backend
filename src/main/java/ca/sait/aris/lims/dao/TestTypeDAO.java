@@ -29,8 +29,6 @@ public class TestTypeDAO extends BaseJdbcDao {
                 testTypeEntity.getBorderColor(),
                 testTypeEntity.getIsActive());
 
-        testTypeEntity.setTestTypeId(generatedId);
-
         return generatedId;
         
     }
