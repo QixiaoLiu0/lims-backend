@@ -17,19 +17,8 @@ public class TestTypeDAO extends BaseJdbcDao {
      * 1. Insert a record into the main table and return the auto-incrementing primary key.
      */
     public int insertTestType(TestType testTypeEntity) throws Exception {
-        String sql = "INSERT INTO test_type (type_name, description, required_volume, bg_color, icon_color, border_color, is_active) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        int generatedId = executeInsertAndReturnKey(sql,
-                testTypeEntity.getTypeName(),
-                testTypeEntity.getDescription(),
-                testTypeEntity.getRequiredVolume(),
-                testTypeEntity.getBgColor(),
-                testTypeEntity.getIconColor(),
-                testTypeEntity.getBorderColor(),
-                testTypeEntity.getIsActive());
-
-        return generatedId;
+    	//TODO
+		return 0;
         
     }
 
@@ -37,40 +26,28 @@ public class TestTypeDAO extends BaseJdbcDao {
      * 2. Query all records in the main table
      */
     public List<TestType> selectAllTestTypes() throws Exception {
-        String sql = "SELECT test_type_id, type_name, description, required_volume, bg_color, icon_color, border_color, is_active " +
-                "FROM test_type";
-
-        return executeQuery(sql, TestType.class);
+    	//TODO
+		return null;
+    	// As long as the column names (underscores) returned by the SELECT query match the attribute names (camel case) of the Entity,
+    	//executeQuery will automatically assemble the List for you using reflection at the underlying level.
+        
     }
 
     /**
      * 3. Query for a single record by ID
      */
     public TestType selectTestTypeById(int testTypeId) throws Exception {
-        String sql = "SELECT test_type_id, type_name, description, required_volume, bg_color, icon_color, border_color, is_active " +
-                "FROM test_type WHERE test_type_id = ?";
-
-        return executeQueryForObject(sql, TestType.class, testTypeId);
+    	//TODO
+		return null;
+    	
     }
 
     /**
      * 4. Update the basic fields of the main table
      */
     public boolean updateTestType(TestType entity) throws Exception {
-    	String sql = "UPDATE test_type SET type_name = ?, description = ?, required_volume = ?, " +
-                "bg_color = ?, icon_color = ?, border_color = ?, is_active = ? " +
-                "WHERE test_type_id = ?";
-
-        int rowsAffected = executeUpdate(sql,
-                entity.getTypeName(),
-                entity.getDescription(),
-                entity.getRequiredVolume(),
-                entity.getBgColor(),
-                entity.getIconColor(),
-                entity.getBorderColor(),
-                entity.getIsActive(),
-                entity.getTestTypeId());
-
-        return rowsAffected > 0;
+    	//TODO
+		return false;
+        
     }
 }
