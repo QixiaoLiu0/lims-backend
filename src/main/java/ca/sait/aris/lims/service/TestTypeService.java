@@ -14,6 +14,10 @@ import ca.sait.aris.lims.util.DBUtil;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * core business layer (Service Layer)
@@ -204,9 +208,7 @@ public class TestTypeService {
 
             boolean updated = testTypeDao.updateTestType(entity);
 
-            // NOTE: parameter diffing (insert/update/delete nested parameters) handled separately — will implement when I tackle SCRUM-39.
-            // Placeholder call point for now:
-            // diffAndApplyParameters(testTypeId, dto.getParameters());
+            diffAndApplyParameters(testTypeId, dto.getParameters());
 
             conn.commit();
             return updated;
@@ -218,13 +220,66 @@ public class TestTypeService {
                 System.err.println("[TestTypeService] Rollback failed: " + rollbackEx.getMessage());
             }
             throw e;
-
         } finally {
             try {
                 conn.setAutoCommit(true);
             } catch (Exception ignored) {
             }
             DBUtil.closeConnection();
+        }
+    }
+
+    /**
+     * Differencial Update (Diffing) Algorithm for nested Parameters
+     */
+    private void diffAndApplyParameters(int testTypeId, List<ParameterReqDTO> incoming) throws Exception {
+        // 1. Load current state from DB
+        List<Parameter> existing = parameterDao.selectParametersByTestTypeId(testTypeId);
+
+        // 2. Index existing rows by id for 0(1) lookup
+        Map<Integer, Parameter> existingById = new HashMap<>();
+        for (Parameter p : existing) {
+            existingById.put(p.getParameterId(), p);
+        }
+
+        // 3. Track which existing ids are still present in the incoming list
+        Set<Integer> stillPresentIds = new HashSet<>();
+
+        if (incoming != null) {
+            for (ParameterReqDTO dto : incoming) {
+                if (dto.getParameterId() == null) {
+                    // 3a. No id -> new parameter, INSERT
+                    Parameter newEntity = new Parameter();
+                    newEntity.setTestTypeId(testTypeId);
+                    newEntity.setParameterName(dto.getParameterName());
+                    newEntity.setUnit(dto.getUnit());
+                    newEntity.setLimit(dto.getLimit());
+                    parameterDao.insertParameter(newEntity);
+                } else {
+                    stillPresentIds.add(dto.getParameterId());
+
+                    Parameter existingEntity = existingById.get(dto.getParameterId());
+                    if (existingEntity == null) {
+                        // Defensive: id was supplied but doesn't exist under test type (stale client state, or wrong test type id).
+                        // Treat as error, so no silently inserting under a nonexistent id.
+                        throw new IllegalArgumentException(
+                                "Parameter id" + dto.getParameterId() + " does not belong to test type " + testTypeId
+                        );
+                    }
+
+                    existingEntity.setParameterName((dto.getParameterName()));
+                    existingEntity.setUnit(dto.getUnit());
+                    existingEntity.setLimit(dto.getLimit());
+                    parameterDao.updateParameter(existingEntity);
+                }
+            }
+        }
+
+        // 4. Anything in DB not referenced in incoming list war removed by user -> DELETE
+        for (Parameter dbRow : existing) {
+            if (!stillPresentIds.contains(dbRow.getParameterId())) {
+                parameterDao.deleteParameterById((dbRow.getParameterId()));
+            }
         }
     }
 }
