@@ -16,7 +16,7 @@ public class ParameterDAO extends BaseJdbcDao {
      * 1. Query the list of all parameters belonging to the main table ID.
      */
     public List<Parameter> selectParametersByTestTypeId(int testTypeId) throws Exception {
-        String sql = "SELECT parameter_id, test_type_id, parameter_name, unit, 'limit'" +
+        String sql = "SELECT parameter_id, test_type_id, parameter_name, unit, `limit`" +
                 "FROM parameter WHERE test_type_id = ? ORDER BY parameter_id";
         return executeQuery(sql, Parameter.class, testTypeId);
     }
@@ -25,7 +25,7 @@ public class ParameterDAO extends BaseJdbcDao {
      * 2. Insert a new parameter record
      */
     public void insertParameter(Parameter entity) throws Exception {
-        String sql = "INSERT INTO parameter (test_type_id, parameter_name, unit, 'limit') " +
+        String sql = "INSERT INTO parameter (test_type_id, parameter_name, unit, `limit`) " +
                 "VALUES (?, ?, ?, ?)";
         int generatedId = executeInsertAndReturnKey(sql,
                 entity.getTestTypeId(),
@@ -39,7 +39,7 @@ public class ParameterDAO extends BaseJdbcDao {
      * 3. Precisely update a single existing parameter (supports differential algorithms).
      */
     public void updateParameter(Parameter existingEntity) throws Exception {
-        String sql = "UPDATE parameter SET parameter_name = ?, unit = ?, 'limit' = ?" +
+        String sql = "UPDATE parameter SET parameter_name = ?, unit = ?, `limit` = ?" +
                 "WHERE parameter_id = ?";
         executeUpdate(sql,
         existingEntity.getParameterName(),
