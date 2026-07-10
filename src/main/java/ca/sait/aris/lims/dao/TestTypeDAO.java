@@ -19,7 +19,7 @@ public class TestTypeDAO extends BaseJdbcDao {
      * 1. Insert a record into the main table and return the auto-incrementing primary key.
      */
     public int insertTestType(TestType testTypeEntity) throws Exception {
-    	String sql = "INSERT INTO test_type (type_name, description, required_volumet, bg_color, icon_color, border_color, is_active) " + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    	String sql = "INSERT INTO test_type (type_name, description, required_volume, bg_color, icon_color, border_color, is_active) " + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 		return executeInsertAndReturnKey(sql,
                 testTypeEntity.getTypeName(),
                 testTypeEntity.getDescription(),
