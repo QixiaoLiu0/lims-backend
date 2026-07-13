@@ -8,7 +8,7 @@ import ca.sait.aris.lims.service.UserService;
 import com.google.gson.Gson;
 
 /**
- * 面向网关的认证业务终点站
+ * Authentication Controller 
  */
 public class AuthController {
 
@@ -36,7 +36,7 @@ public class AuthController {
     }
 
     /**
-     * 路由: POST /api/auth/password
+     * route: POST /api/auth/password
      */
     public RespResult<Object> handleModifyPassword(String jsonBody) {
         try {

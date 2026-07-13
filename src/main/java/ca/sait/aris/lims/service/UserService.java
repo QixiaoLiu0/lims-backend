@@ -38,7 +38,7 @@ public class UserService {
     }
 
     /**
-     * 处理修改密码
+     * Handles password modify
      */
     public void modifyPassword(ModifyPasswordReqDTO req) throws Exception {
         Connection conn = null;
