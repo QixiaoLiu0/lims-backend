@@ -1,6 +1,7 @@
 package ca.sait.aris.lims.servlet;
 
 import ca.sait.aris.lims.common.RespResult;
+import ca.sait.aris.lims.controller.AuthController;
 import ca.sait.aris.lims.controller.TestTypeController;
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
 import com.google.gson.Gson;
@@ -18,8 +19,11 @@ import java.io.IOException;
  * [Strict Rule Compliance]: Configured ONLY for GET and POST HTTP methods.
  */
 public class ApiGatewayServlet extends HttpServlet {
-
+	
+	private static final long serialVersionUID = 1L;
+	
     private TestTypeController testTypeController;
+    private AuthController authController; // Sprint 2
     // other controllers
     
     private Gson gson;
@@ -27,6 +31,7 @@ public class ApiGatewayServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         this.testTypeController = new TestTypeController();
+        this.authController = new AuthController();
         //instantiates other controllers
         
         this.gson = new GsonBuilder().create();
@@ -75,7 +80,26 @@ public class ApiGatewayServlet extends HttpServlet {
             }
 
             String body = readRequestBody(req);
-
+            
+            
+            
+            // --- Auth Routing (Sprint 2) ---
+            if (pathInfo.startsWith("/auth")) {
+                if ("/auth/login".equals(pathInfo)) {
+                    // POST /api/auth/login
+                    writeJson(resp, authController.handleLogin(body));
+                    return;
+                } else if ("/auth/password".equals(pathInfo)) {
+                    // POST /api/auth/password
+                    writeJson(resp, authController.handleModifyPassword(body));
+                    return;
+                }
+            }
+            
+            
+            
+            
+            // --- Test Type Routing (Sprint 1)  ---
             if (pathInfo.startsWith("/test-types")) {
                 String subPath = pathInfo.substring("/test-types".length());
 
@@ -85,7 +109,6 @@ public class ApiGatewayServlet extends HttpServlet {
                     writeJson(resp, testTypeController.createTestType(reqDto));
                     return;
                 } 
-                
                 // 4：POST /api/test-types/{id} (Update Test Type)
                 else {
                     int id = Integer.parseInt(subPath.replace("/", ""));
