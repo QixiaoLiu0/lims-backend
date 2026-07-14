@@ -10,11 +10,12 @@ import java.util.List;
 /**
  * Abstract Data Access Object
  * Encapsulate template code and use reflection to automatically map ResultSet to Java POJO.
+ * Chris Jul.14 updates: integrates robust type adaptation patches and a strict fail-fast error handling strategy.
  */
 public abstract class BaseJdbcDao {
 
     /**
-     * 1.(INSERT / UPDATE / DELETE)
+     * 1.Generic update method (INSERT / UPDATE / DELETE)
      */
     protected int executeUpdate(String sql, Object... params) throws SQLException {
         Connection conn = DBUtil.getConnection();
@@ -68,15 +69,46 @@ public abstract class BaseJdbcDao {
                         	// 2: Mapping database underscore fields to Java camelCase attributes
                             String fieldName = underscoreToCamelCase(columnName);
                             Field field = findField(clazz, fieldName);
+                            
                             if (field != null) {
-                                field.setAccessible((true));
+                                field.setAccessible(true);
+                                
+//                                try {
+//                                    field.set(obj, columnValue);
+//                                } catch (IllegalArgumentException e) {
+//                                    System.err.println("[BaseJdbcDao] Type mistmatch for field '" + fieldName +
+//                                            "' on " + clazz.getSimpleName() + ": expected " + field.getType().getSimpleName() +
+//                                            " but got " + columnValue.getClass().getSimpleName());
+//                                }
+                                
                                 try {
+                                    Class<?> fieldType = field.getType();
+                                    
+                                    // === Type Adaptation Patches ===
+                                    // 1. Adapt MySQL 8.0+ DATETIME (LocalDateTime) to java.util.Date
+                                    if (fieldType.equals(java.util.Date.class) && columnValue instanceof java.time.LocalDateTime) {
+                                        java.time.LocalDateTime ldt = (java.time.LocalDateTime) columnValue;
+                                        columnValue = java.util.Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant());
+                                    }
+                                    // 2. Adapt MySQL TINYINT(1) (driver returns Boolean) to Java Integer
+                                    else if (fieldType.equals(Integer.class) && columnValue instanceof Boolean) {
+                                        columnValue = ((Boolean) columnValue) ? 1 : 0;
+                                    }
+                                    // 3. Adapt MySQL TINYINT(1) (driver returns Integer) to Java Boolean
+                                    else if (fieldType.equals(Boolean.class) && columnValue instanceof Integer) {
+                                        columnValue = ((Integer) columnValue) == 1;
+                                    }
+
                                     field.set(obj, columnValue);
                                 } catch (IllegalArgumentException e) {
-                                    System.err.println("[BaseJdbcDao] Type mistmatch for field '" + fieldName +
-                                            "' on " + clazz.getSimpleName() + ": expected " + field.getType().getSimpleName() +
-                                            " but got " + columnValue.getClass().getSimpleName());
+                                    // Fail-fast strategy: print detailed mismatch details and rethrow the exception
+                                    System.err.println("[BaseJdbcDao Reflection Error] Field: " + fieldName + 
+                                            " on " + clazz.getSimpleName() + 
+                                            ", Expected: " + field.getType().getName() + 
+                                            ", Actual: " + columnValue.getClass().getName());
+                                    throw e;
                                 }
+                                
                             } else {
                                 System.err.println("[BaseJdbcDao] No matching field '" + fieldName + "' on " + clazz.getSimpleName());
                             }
