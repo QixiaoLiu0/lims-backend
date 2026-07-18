@@ -73,18 +73,10 @@ public abstract class BaseJdbcDao {
                             if (field != null) {
                                 field.setAccessible(true);
                                 
-//                                try {
-//                                    field.set(obj, columnValue);
-//                                } catch (IllegalArgumentException e) {
-//                                    System.err.println("[BaseJdbcDao] Type mistmatch for field '" + fieldName +
-//                                            "' on " + clazz.getSimpleName() + ": expected " + field.getType().getSimpleName() +
-//                                            " but got " + columnValue.getClass().getSimpleName());
-//                                }
-                                
                                 try {
                                     Class<?> fieldType = field.getType();
                                     
-                                    // === Type Adaptation Patches ===
+                                    // === Type Adaptation Patches === 
                                     // 1. Adapt MySQL 8.0+ DATETIME (LocalDateTime) to java.util.Date
                                     if (fieldType.equals(java.util.Date.class) && columnValue instanceof java.time.LocalDateTime) {
                                         java.time.LocalDateTime ldt = (java.time.LocalDateTime) columnValue;
@@ -129,6 +121,52 @@ public abstract class BaseJdbcDao {
     protected <T> T executeQueryForObject(String sql, Class<T> clazz, Object... params) throws SQLException {
         List<T> list = executeQuery(sql, clazz, params);
         return list.isEmpty() ? null : list.get(0);
+    }
+    
+    /**
+     * [Sprint 3 new] High-performance batch update/insert method
+     */
+    protected int[] executeBatchUpdate(String sql, List<Object[]> paramsList) throws SQLException {
+        Connection conn = DBUtil.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            for (Object[] params : paramsList) {
+                setParameters(stmt, params);
+                stmt.addBatch(); // Add to batch queue
+            }
+            return stmt.executeBatch(); // Submit to database at once
+        }
+    }
+    
+    /**
+     * [Sprint 3 Architecture Upgrade] Specifically designed to resolve generic methods for scalar queries such as COUNT and MAX.
+     * Perfectly avoids reflection crashes caused by the lack of standard parameterless constructors in 
+     * primitive type wrapper classes (Integer, Long).
+     */
+    protected <T> T executeQueryForScalar(String sql, Class<T> clazz, Object... params) throws SQLException {
+        Connection conn = DBUtil.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            setParameters(stmt, params);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Object value = rs.getObject(1);
+                    if (value == null) {
+                        return null;
+                    }
+                    
+                    // Robustness to numeric types and fault tolerance for type conversion (solving the issue of MySQL COUNT returning Long).
+                    if (clazz == Integer.class && value instanceof Number) {
+                        return clazz.cast(((Number) value).intValue());
+                    } else if (clazz == Long.class && value instanceof Number) {
+                        return clazz.cast(((Number) value).longValue());
+                    }
+                    
+                    return clazz.cast(value);
+                }
+                return null;
+            }
+        } catch (Exception e) {
+            throw new SQLException("Scalar query execution failed: " + sql, e);
+        }
     }
 
   
