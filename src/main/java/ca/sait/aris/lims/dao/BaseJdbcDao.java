@@ -5,7 +5,9 @@ import ca.sait.aris.lims.util.DBUtil;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract Data Access Object
@@ -62,47 +64,64 @@ public abstract class BaseJdbcDao {
                     T obj = clazz.getDeclaredConstructor().newInstance();
 
                     for (int i = 1; i <= columnCount; i++) {
+                        // Use getColumnLabel to support AS alias syntax in SQL.
                         String columnName = metaData.getColumnLabel(i);
                         Object columnValue = rs.getObject(i);
 
                         if (columnValue != null) {
-                        	// 2: Mapping database underscore fields to Java camelCase attributes
-                            String fieldName = underscoreToCamelCase(columnName);
-                            Field field = findField(clazz, fieldName);
+                            String fieldName = underscoreToCamelCase(columnName);//Camel mapping
                             
-                            if (field != null) {
-                                field.setAccessible(true);
+                            try {
+                                Field field = findField(clazz, fieldName);
                                 
-                                try {
-                                    Class<?> fieldType = field.getType();
-                                    
-                                    // === Type Adaptation Patches === 
-                                    // 1. Adapt MySQL 8.0+ DATETIME (LocalDateTime) to java.util.Date
-                                    if (fieldType.equals(java.util.Date.class) && columnValue instanceof java.time.LocalDateTime) {
-                                        java.time.LocalDateTime ldt = (java.time.LocalDateTime) columnValue;
-                                        columnValue = java.util.Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant());
-                                    }
-                                    // 2. Adapt MySQL TINYINT(1) (driver returns Boolean) to Java Integer
-                                    else if (fieldType.equals(Integer.class) && columnValue instanceof Boolean) {
-                                        columnValue = ((Boolean) columnValue) ? 1 : 0;
-                                    }
-                                    // 3. Adapt MySQL TINYINT(1) (driver returns Integer) to Java Boolean
-                                    else if (fieldType.equals(Boolean.class) && columnValue instanceof Integer) {
-                                        columnValue = ((Integer) columnValue) == 1;
-                                    }
-
-                                    field.set(obj, columnValue);
-                                } catch (IllegalArgumentException e) {
-                                    // Fail-fast strategy: print detailed mismatch details and rethrow the exception
-                                    System.err.println("[BaseJdbcDao Reflection Error] Field: " + fieldName + 
-                                            " on " + clazz.getSimpleName() + 
-                                            ", Expected: " + field.getType().getName() + 
-                                            ", Actual: " + columnValue.getClass().getName());
-                                    throw e;
+                                if (field == null) {continue; }
+                                
+                                Class<?> fieldType = field.getType();
+                                
+                                // Explicitly skip collection class properties to prevent DTO nested List crashes
+                                if (Collection.class.isAssignableFrom(fieldType) || Map.class.isAssignableFrom(fieldType)) {
+                                    continue;
                                 }
                                 
-                            } else {
-                                System.err.println("[BaseJdbcDao] No matching field '" + fieldName + "' on " + clazz.getSimpleName());
+                                // === Type Adaptation Patches === 
+                                // 1. Date Type Adaptation
+                                if (java.util.Date.class.isAssignableFrom(fieldType)) {
+                                    if (columnValue instanceof java.time.LocalDateTime) {
+                                        columnValue = java.util.Date.from(((java.time.LocalDateTime) columnValue).atZone(java.time.ZoneId.systemDefault()).toInstant());
+                                    } else if (columnValue instanceof java.time.LocalDate) {
+                                        columnValue = java.util.Date.from(((java.time.LocalDate) columnValue).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
+                                    }
+                                } else if (fieldType.equals(java.time.LocalDateTime.class)) {
+                                    if (columnValue instanceof java.sql.Timestamp) {
+                                        columnValue = ((java.sql.Timestamp) columnValue).toLocalDateTime();
+                                    } else if (columnValue instanceof java.util.Date) {
+                                        columnValue = ((java.util.Date) columnValue).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+                                    }
+                                }
+                                
+                                // 2. TINYINT(1)  & Integer & BIGINT & Boolean adaptor
+                                if (fieldType.equals(Integer.class)) {
+                                    if (columnValue instanceof Boolean) {
+                                        columnValue = ((Boolean) columnValue) ? 1 : 0; // TINYINT -> Integer
+                                    } else if (columnValue instanceof Number) {
+                                        columnValue = ((Number) columnValue).intValue(); // BIGINT -> Integer
+                                    }
+                                } else if (fieldType.equals(Long.class) && columnValue instanceof Number) {
+                                    columnValue = ((Number) columnValue).longValue();
+                                } else if (fieldType.equals(Double.class) && columnValue instanceof Number) {
+                                    columnValue = ((Number) columnValue).doubleValue(); // BigDecimal -> Double
+                                } else if (fieldType.equals(Boolean.class) && columnValue instanceof Integer) {
+                                    columnValue = ((Integer) columnValue) == 1; // TINYINT -> Boolean
+                                }
+                                
+                                field.set(obj, columnValue);
+                                
+                            } catch (IllegalArgumentException e) {
+                            		// Fail-fast strategy: print detailed mismatch details and rethrow the exception
+                                System.err.println("[Reflection Error] Field: " + fieldName + 
+                                        ", Expected: " + clazz.getDeclaredField(fieldName).getType().getName() + 
+                                        ", Actual: " + columnValue.getClass().getName());
+                                throw e;
                             }
                         }
                     }
@@ -214,7 +233,9 @@ public abstract class BaseJdbcDao {
         Class<?> current = clazz;
         while (current != null && current != Object.class) {
             try {
-                return current.getDeclaredField((fieldName));
+            	Field field = current.getDeclaredField(fieldName);
+                field.setAccessible(true);
+                return field;
             } catch (NoSuchFieldException e) {
                 current = current.getSuperclass();
             }
