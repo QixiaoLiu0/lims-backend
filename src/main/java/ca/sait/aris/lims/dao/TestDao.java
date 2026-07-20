@@ -12,20 +12,20 @@ public class TestDao extends BaseJdbcDao {
     }
 
     public void deleteTestById(String testId) throws Exception {
-    	//TODO
+    	String sql = "DELETE FROM test WHERE test_id = ?";
+        executeUpdate(sql, testId);
     }
 
     public Test selectTestById(String testId) throws Exception {
     	//TODO
 		return null;
-        
+
     }
 
     // Query the Test list for the Sample details page.
     public List<SampleDetailTestRespDTO> selectTestsBySampleId(String sampleId) throws Exception {
-    	//TODO
-		return null;
-        
+    	String sql = "SELECT test_id FROM test WHERE sample_id = ?";
+        return executeQuery(sql, SampleDetailTestRespDTO.class, sampleId);
     }
 
     // Dynamic calculation of Run Number
