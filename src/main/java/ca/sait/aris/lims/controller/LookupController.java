@@ -14,10 +14,14 @@ public class LookupController {
 
     // API 1: Get Active Test Types
     public RespResult<List<LookupTestTypeRespDTO>> getActiveTestTypes() {
-    	//TODO
-		return null;
-    	
-        
+    	try{
+            List<LookupTestTypeRespDTO> list = lookupService.getActiveTestTypes();
+            return RespResult.success(list);
+        } catch (Exception e){
+            System.err.println("[LookupController] getActiveTestTypes failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to retrieve active test types");
+        }
     }
 
 
