@@ -8,7 +8,17 @@ public class TestDao extends BaseJdbcDao {
 
     // Do not insert the status field
     public void insertTest(Test test) throws Exception {
-        //TODO
+        String sql = "INSERT INTO test (test_id, sample_id, test_type_id, created_at, run_number, retest_reason) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
+        executeUpdate(sql,
+                test.getTestId(),
+                test.getSampleId(),
+                test.getTestTypeId(),
+                toTimestamp(test.getCreatedAt()),
+                test.getRunNumber(),
+                test.getRetestReason()
+        );
     }
 
     public void deleteTestById(String testId) throws Exception {
