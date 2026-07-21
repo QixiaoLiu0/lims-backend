@@ -2,6 +2,8 @@ package ca.sait.aris.lims.dao;
 
 import ca.sait.aris.lims.util.DBUtil;
 
+import java.util.Date;
+import java.sql.Timestamp;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
@@ -188,6 +190,13 @@ public abstract class BaseJdbcDao {
         }
     }
 
+    /**
+     * Helper: convert java.util.Date to java.sql.Timestamp for safe JDBC binding.
+     * MySQL Connector/J does not reliably support setObject() with a raw java.util.Date.
+     */
+    protected Timestamp toTimestamp(Date date) {
+        return date == null ? null : new Timestamp(date.getTime());
+    }
   
     /**
      * Helper method: Safely inject parameters into PreparedStatement
