@@ -11,7 +11,12 @@ public class ResultDao extends BaseJdbcDao {
 	 * @param paramsList Each Object[] contains: [result_id, test_id, parameter_id, created_at, created_by_user_id, qualifier]
 	 */
     public void batchInsertPlaceholders(List<Object[]> paramsList) throws Exception {
-        //TODO
+        if (paramsList == null || paramsList.isEmpty()) {
+            return;
+        }
+        String sql = "INSERT INTO result (result_id, test_id, parameter_id, created_at, created_by_user_id, qualifier) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+        executeBatchUpdate(sql, paramsList);
     }
 
     /**
