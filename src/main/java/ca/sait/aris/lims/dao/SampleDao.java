@@ -9,7 +9,28 @@ public class SampleDao extends BaseJdbcDao {
 
     // Do not insert the status field
     public void insertSample(Sample sample) throws Exception {
-        //TODO
+        String sql = "INSERT INTO sample (sample_id, coc_id, sample_type_id, sample_client_id, sampled_time, " +
+                "sampling_point, matrix, number_of_containers, remarks, initial_volume, remaining_volume, " +
+                "created_at, is_filtered, is_preserved, is_filtered_and_preserved) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        executeUpdate(sql,
+                sample.getSampleId(),
+                sample.getCocId(),
+                sample.getSampleTypeId(),
+                sample.getSampleClientId(),
+                toTimestamp(sample.getSampledTime()),
+                sample.getSamplingPoint(),
+                sample.getMatrix(),
+                sample.getNumberOfContainers(),
+                sample.getRemarks(),
+                sample.getInitialVolume(),
+                sample.getRemainingVolume(),
+                toTimestamp(sample.getCreatedAt()),
+                sample.getIsFiltered(),
+                sample.getIsPreserved(),
+                sample.getIsFilteredAndPreserved()
+        );
     }
 
     public void deleteSampleById(String sampleId) throws Exception {
