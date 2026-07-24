@@ -1,11 +1,18 @@
 package ca.sait.aris.lims.controller;
 
+import com.google.gson.Gson;
+
 import ca.sait.aris.lims.common.RespResult;
 import ca.sait.aris.lims.dto.resp.SampleDetailRespDTO;
 import ca.sait.aris.lims.dto.resp.SampleIdRespDTO;
 
 //sprint 3
 public class SampleController {
+	private final Gson gson;
+    
+    public SampleController(Gson gson){
+    	this.gson = gson;
+    }
 
     // API 5: Append Sample to COC
     public RespResult<SampleIdRespDTO> appendSampleToCoc(String cocId, String jsonBody) {

@@ -7,6 +7,7 @@ import ca.sait.aris.lims.controller.LookupController;
 import ca.sait.aris.lims.controller.SampleController;
 import ca.sait.aris.lims.controller.TestController;
 import ca.sait.aris.lims.controller.TestTypeController;
+import ca.sait.aris.lims.controller.UserController;
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,19 +38,14 @@ public class ApiGatewayServlet extends HttpServlet {
     private CocController cocController;
     private SampleController sampleController;
     private TestController testController;
+    private UserController userController;
     // other controllers
     
     private Gson gson;
 
     @Override
     public void init() throws ServletException {
-        this.testTypeController = new TestTypeController();
-        this.authController = new AuthController();
-        this.lookupController = new LookupController();
-        this.cocController = new CocController();
-        this.sampleController = new SampleController();
-        this.testController = new TestController();
-        //instantiates other controllers
+       
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         this.gson = new GsonBuilder()
@@ -68,6 +64,15 @@ public class ApiGatewayServlet extends HttpServlet {
                     return LocalDateTime.parse(datetime, formatter);
                 })
             .create();
+        
+        this.testTypeController = new TestTypeController(this.gson);
+        this.authController = new AuthController(this.gson);
+        this.lookupController = new LookupController(this.gson);
+        this.cocController = new CocController(this.gson);
+        this.sampleController = new SampleController(this.gson);
+        this.testController = new TestController(this.gson);
+        this.userController = new UserController(this.gson);
+        //instantiates other controllers
         
     }
 

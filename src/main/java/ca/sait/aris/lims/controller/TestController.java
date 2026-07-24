@@ -6,8 +6,15 @@ import ca.sait.aris.lims.dto.resp.TestResultRespDTO;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 //sprint 3
 public class TestController {
+	private final Gson gson;
+    
+    public TestController(Gson gson){
+    	this.gson = gson;
+    }
 
     // API 6: Append Test to Sample
     public RespResult<TestAssignedRespDTO> appendTestToSample(String sampleId, String jsonBody) {

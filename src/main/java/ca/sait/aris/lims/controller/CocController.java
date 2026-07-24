@@ -7,8 +7,16 @@ import ca.sait.aris.lims.dto.resp.DashboardCocRespDTO;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 //sprint 3
 public class CocController {
+	
+	private final Gson gson;
+    
+    public CocController(Gson gson){
+    	this.gson = gson;
+    }
 
     // API 4: Create COC
     public RespResult<CocIdRespDTO> createCoc(String jsonBody) {

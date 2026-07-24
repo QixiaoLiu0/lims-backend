@@ -1,5 +1,9 @@
 package ca.sait.aris.lims.dao;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
+
 import ca.sait.aris.lims.entity.User;
 
 /**
@@ -31,5 +35,35 @@ public class UserDAO extends BaseJdbcDao {
                 "WHERE user_id = ?";
 
         executeUpdate(sql, newPasswordHash, userId);
+    }
+    
+    
+    public List<User> selectAllUsers() throws Exception{
+		String sql = "SELECT user_id, created_by_user_id, email, pwd_hash, first_name, last_name, " +
+                "role, must_change_password, created_at FROM user";
+		return executeQuery(sql, User.class);
+	}
+
+	public void insertUser(User user) throws SQLException {
+        String sql = "INSERT INTO user (user_id, created_by_user_id, email, pwd_hash, first_name, " +
+                     "last_name, role, must_change_password, created_at) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        executeUpdate(sql, 
+            user.getUserId(), 
+            user.getCreatedByUserId(), 
+            user.getEmail(), 
+            user.getPwdHash(), 
+            user.getFirstName(), 
+            user.getLastName(), 
+            user.getRole(), 
+            user.getMustChangePassword(), 
+            new Timestamp(user.getCreatedAt().getTime())
+        );
+    }
+
+	public void updateUserRole(String userId, String role) throws Exception {
+        String sql = "UPDATE user SET role = ? WHERE user_id = ?";
+        executeUpdate(sql, role, userId);
     }
 }

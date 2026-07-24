@@ -13,7 +13,12 @@ import com.google.gson.Gson;
 public class AuthController {
 
     private final UserService userService = new UserService();
-    private final Gson gson = new Gson();
+    private final Gson gson;
+    
+    public AuthController(Gson gson){
+    	this.gson = gson;
+    }
+
 
     /**
      * route: POST /api/auth/login
