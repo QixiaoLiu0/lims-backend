@@ -47,4 +47,13 @@ public class SampleDao extends BaseJdbcDao {
 		return 0;
         
     }
+
+    // AI chatbot support: retrieve samples filtered by status
+    public List<Sample> selectSamplesByStatus(String status) throws Exception {
+        String sql = "SELECT sample_id, coc_id, sample_type_id, sample_client_id, sampled_time, sampling_point, " +
+                "matrix, number_of_containers, remarks, initial_volume, remaining_volume, created_at, " +
+                "is_filtered, is_preserved, is_filtered_and_preserved, status " +
+                "FROM sample WHERE status = ?";
+        return executeQuery(sql, Sample.class, status);
+    }
 }

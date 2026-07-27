@@ -1,18 +1,15 @@
 package ca.sait.aris.lims.servlet;
 
 import ca.sait.aris.lims.common.RespResult;
-import ca.sait.aris.lims.controller.AuthController;
-import ca.sait.aris.lims.controller.CocController;
-import ca.sait.aris.lims.controller.LookupController;
-import ca.sait.aris.lims.controller.SampleController;
-import ca.sait.aris.lims.controller.TestController;
-import ca.sait.aris.lims.controller.TestTypeController;
+import ca.sait.aris.lims.controller.*;
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
+import ca.sait.aris.lims.controller.ChatController;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonObject; // for if the JSON stuff at line 190 is needed
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -37,6 +34,7 @@ public class ApiGatewayServlet extends HttpServlet {
     private CocController cocController;
     private SampleController sampleController;
     private TestController testController;
+    private ChatController chatController;
     // other controllers
     
     private Gson gson;
@@ -49,6 +47,7 @@ public class ApiGatewayServlet extends HttpServlet {
         this.cocController = new CocController();
         this.sampleController = new SampleController();
         this.testController = new TestController();
+        this.chatController = new ChatController();
         //instantiates other controllers
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -179,7 +178,23 @@ public class ApiGatewayServlet extends HttpServlet {
             }
             
             
-            
+            // --- Chat Routing (AI query support) ---
+            if ("/chat".equals(pathInfo)) {
+                // POST /api/chat - body is raw user prompt, not JSON
+                writeJson(resp, chatController.chat(body));
+                return;
+            }
+
+            /// replace above with following in case JSON is expected
+            /*
+            if ("/chat".equals(pathInfo)) {
+                JsonObject chatBody = gson.fromJson(body, JsonObject.class);
+                String prompt = chatBody.get("prompt").getAsString();
+                writeJson(resp, chatController.chat(prompt));
+                return;
+            }
+            */
+
             
             // --- Test Type Routing (Sprint 1)  ---
             if (pathInfo.startsWith("/test-types")) {
