@@ -21,6 +21,8 @@ public class CocController {
 
     private final CocService cocService = new CocService();
 
+    private final CocService cocService = new CocService();
+
     // API 4: Create COC
     public RespResult<CocIdRespDTO> createCoc(String jsonBody) {
         //TODO

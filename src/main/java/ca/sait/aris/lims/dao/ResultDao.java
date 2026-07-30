@@ -29,7 +29,11 @@ public class ResultDao extends BaseJdbcDao {
 
     // Join query: Retrieves blueprint metadata for Result place holders and Parameters.
     public List<TestResultRespDTO> selectResultsByTestId(String testId) throws Exception {
-    	//TODO
-		return null;
+        String sql = "SELECT r.result_id, r.parameter_id, p.parameter_name, p.unit, p.`limit`, r.value, r.qualifier " +
+                "FROM result r " +
+                "JOIN parameter p ON r.parameter_id = p.parameter_id " +
+                "WHERE r.test_id = ? " +
+                "ORDER BY p.parameter_id";
+        return executeQuery(sql, TestResultRespDTO.class, testId);
     }
 }

@@ -24,7 +24,7 @@ public class TestDao extends BaseJdbcDao {
 
     // Query the Test list for the Sample details page.
     public List<SampleDetailTestRespDTO> selectTestsBySampleId(String sampleId) throws Exception {
-    	String sql = "SELECT test_id FROM test WHERE sample_id = ?";
+        String sql = "SELECT test_id FROM test WHERE sample_id = ?";
         return executeQuery(sql, SampleDetailTestRespDTO.class, sampleId);
     }
 

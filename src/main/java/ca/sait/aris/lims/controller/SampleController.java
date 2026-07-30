@@ -17,6 +17,8 @@ public class SampleController {
 
     private final SampleService sampleService = new SampleService();
 
+    private final SampleService sampleService = new SampleService();
+
     // API 5: Append Sample to COC
     public RespResult<SampleIdRespDTO> appendSampleToCoc(String cocId, String jsonBody) {
         //TODO
