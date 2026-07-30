@@ -1,5 +1,7 @@
 package ca.sait.aris.lims.controller;
 
+import com.google.gson.Gson;
+
 import ca.sait.aris.lims.common.RespResult;
 import ca.sait.aris.lims.dto.resp.SampleDetailRespDTO;
 import ca.sait.aris.lims.dto.resp.SampleIdRespDTO;
@@ -7,6 +9,13 @@ import ca.sait.aris.lims.service.SampleService;
 
 //sprint 3
 public class SampleController {
+	private final Gson gson;
+    
+    public SampleController(Gson gson){
+    	this.gson = gson;
+    }
+
+    private final SampleService sampleService = new SampleService();
 
     private final SampleService sampleService = new SampleService();
 

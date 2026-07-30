@@ -7,8 +7,18 @@ import ca.sait.aris.lims.service.TestService;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 //sprint 3
 public class TestController {
+  private final TestService testService = new TestService();
+
+	private final Gson gson;
+    
+    public TestController(Gson gson){
+    	this.gson = gson;
+    }
+
 
     private final TestService testService = new TestService();
 
@@ -20,14 +30,16 @@ public class TestController {
 
     // API 8: Delete Test Task
     public RespResult<Object> deleteTest(String testId) {
-        try {
+
+    	try {
             testService.deleteTest(testId);
             return RespResult.success();
-        } catch (Exception e) {
+      } catch (Exception e) {
             System.err.println("[TestController] deleteTest failed: " + e.getMessage());
             e.printStackTrace();
             return RespResult.error("Failed to delete test: " + testId);
-        }
+       }
+
     }
 
     // API 9: Get Test Results

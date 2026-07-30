@@ -35,13 +35,14 @@ public class JwtAuthFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     	List<String> adminRoles = Arrays.asList("ADMIN", "SUPER_ADMIN");
-//    	List<String> superAdminOnly = Arrays.asList("SUPER_ADMIN");
+    	List<String> superAdminOnly = Arrays.asList("SUPER_ADMIN");
 //    	List<String> allUsers = Arrays.asList("STAFF", "ADMIN", "SUPER_ADMIN");
     	
     	
     	
     	//intercepts requests to /test-types, allowing only ADMIN and SUPER_ADMIN access.
     	PERMISSION_MATRIX.put("/test-types", adminRoles);
+    	PERMISSION_MATRIX.put("/user", superAdminOnly);
     }
 
     @Override

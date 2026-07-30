@@ -6,6 +6,8 @@ import ca.sait.aris.lims.dto.req.ResultBatchSaveReqDTO;
 import ca.sait.aris.lims.dto.req.TestSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.TestAssignedRespDTO;
 import ca.sait.aris.lims.dto.resp.TestResultRespDTO;
+
+import ca.sait.aris.lims.entity.Result;
 import ca.sait.aris.lims.util.DBUtil;
 
 import java.sql.Connection;
@@ -24,10 +26,10 @@ public class TestService {
 
     // API 8: Cascade Physical Deletion of Test
     public void deleteTest(String testId) throws Exception {
-        Connection conn = DBUtil.getConnection();
-
-        try {
+    	Connection conn = DBUtil.getConnection();
+      try {
             conn.setAutoCommit(false);
+
 
             // 1. Delete Result placeholders first (deepest level)
             resultDao.deleteResultsByTestId(testId);
@@ -37,21 +39,29 @@ public class TestService {
 
             conn.commit();
 
-        } catch (Exception e) {
+
+            // 1. Delete Result placeholders
+            resultDao.deleteResultsByTestId(testId);
+
+            // 2.  Delete the Test itself
+            testDao.deleteTestById(testId);
+
+            conn.commit();
+
+      } catch (Exception e) {
             try {
                 conn.rollback();
             } catch (Exception rollbackEx) {
                 System.err.println("[TestService] Rollback failed: " + rollbackEx.getMessage());
             }
             throw e;
-
-        } finally {
+      } finally {
             try {
                 conn.setAutoCommit(true);
             } catch (Exception ignored) {
             }
             DBUtil.closeConnection();
-        }
+       }
     }
 
     // API 9: Get Test Results (Placeholder Retrieval)

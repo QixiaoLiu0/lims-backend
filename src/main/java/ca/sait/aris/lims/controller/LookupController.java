@@ -7,10 +7,17 @@ import ca.sait.aris.lims.service.LookupService;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 //sprint 3
 public class LookupController {
 
     private final LookupService lookupService = new LookupService();
+    private final Gson gson;
+    
+    public LookupController(Gson gson){
+    	this.gson = gson;
+    }
 
     // API 1: Get Active Test Types
     public RespResult<List<LookupTestTypeRespDTO>> getActiveTestTypes() {

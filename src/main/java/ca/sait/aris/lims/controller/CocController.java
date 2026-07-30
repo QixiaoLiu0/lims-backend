@@ -8,8 +8,18 @@ import ca.sait.aris.lims.service.CocService;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 //sprint 3
 public class CocController {
+	
+	private final Gson gson;
+    
+    public CocController(Gson gson){
+    	this.gson = gson;
+    }
+
+    private final CocService cocService = new CocService();
 
     private final CocService cocService = new CocService();
 
