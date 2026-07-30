@@ -49,8 +49,13 @@ public class CocDao extends BaseJdbcDao {
     }
 
     public Coc selectCocById(String cocId) throws Exception {
-    	//TODO
-		return null;
+        String sql = "SELECT coc_id, coc_number, project_name, report_to_name1, report_to_email1, " +
+                "report_to_name2, report_to_email2, date_required, is_rush, date_for_rush, received_by, " +
+                "received_time, relinquished_by, relinquished_time, number_of_containers, " +
+                "special_instructions, created_by_user_id, created_at, status " +
+                "FROM coc WHERE coc_id = ?";
+
+        return executeQueryForObject(sql, Coc.class, cocId);
     }
 
     // Aggregate SQL Defense N+1: Retrieve statistics for all COCs and their subordinate Tests in one go.

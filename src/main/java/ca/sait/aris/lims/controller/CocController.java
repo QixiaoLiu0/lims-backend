@@ -79,7 +79,18 @@ public class CocController {
 
     // API 12: Get COC Details
     public RespResult<CocDetailRespDTO> getCocDetail(String cocId) {
-        //TODO
-        return null;
+        try {
+            CocDetailRespDTO detail = cocService.getCocDetail(cocId);
+            if (detail == null) {
+                return RespResult.error(404, "COC not found: " + cocId);
+            }
+
+            return RespResult.success(detail);
+        } catch (Exception e) {
+            System.err.println("[CocController] getCocDetail failed: " + e.getMessage());
+            e.printStackTrace();
+
+            return RespResult.error("Failed to retrieve COC details: " + cocId);
+        }
     }
 }
