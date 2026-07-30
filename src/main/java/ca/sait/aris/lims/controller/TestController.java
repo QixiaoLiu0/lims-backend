@@ -15,7 +15,7 @@ public class TestController {
 
 	private final Gson gson;
     
-    public TestController(Gson gson){
+    public TestController(){
     	this.gson = gson;
     }
 

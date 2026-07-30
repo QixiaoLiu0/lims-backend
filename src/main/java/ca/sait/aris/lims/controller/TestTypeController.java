@@ -19,7 +19,7 @@ public class TestTypeController {
     private final TestTypeService testTypeService = new TestTypeService();
     private final Gson gson;
     
-    public TestTypeController(Gson gson){
+    public TestTypeController(){
     	this.gson = gson;
     }
     

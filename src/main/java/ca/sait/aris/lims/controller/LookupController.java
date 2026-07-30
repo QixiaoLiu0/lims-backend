@@ -15,7 +15,7 @@ public class LookupController {
     private final LookupService lookupService = new LookupService();
     private final Gson gson;
     
-    public LookupController(Gson gson){
+    public LookupController(){
     	this.gson = gson;
     }
 

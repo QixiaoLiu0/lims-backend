@@ -15,7 +15,7 @@ public class AuthController {
     private final UserService userService = new UserService();
     private final Gson gson;
     
-    public AuthController(Gson gson){
+    public AuthController(){
     	this.gson = gson;
     }
 

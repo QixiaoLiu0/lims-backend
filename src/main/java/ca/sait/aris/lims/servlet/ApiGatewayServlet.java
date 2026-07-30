@@ -1,19 +1,17 @@
 package ca.sait.aris.lims.servlet;
 
 import ca.sait.aris.lims.common.RespResult;
-import ca.sait.aris.lims.controller.AuthController;
-import ca.sait.aris.lims.controller.CocController;
-import ca.sait.aris.lims.controller.LookupController;
-import ca.sait.aris.lims.controller.SampleController;
-import ca.sait.aris.lims.controller.TestController;
-import ca.sait.aris.lims.controller.TestTypeController;
-import ca.sait.aris.lims.controller.UserController;
+import ca.sait.aris.lims.controller.*;
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
+import ca.sait.aris.lims.controller.AiController;
+import ca.sait.aris.lims.dto.req.AiChatReqDTO;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonObject; // for if the JSON stuff at line 190 is needed
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -29,63 +27,61 @@ import java.time.format.DateTimeFormatter;
  * [Strict Rule Compliance]: Configured ONLY for GET and POST HTTP methods.
  */
 public class ApiGatewayServlet extends HttpServlet {
-	
-	private static final long serialVersionUID = 1L;
-	
+
+    private static final long serialVersionUID = 1L;
+
     private TestTypeController testTypeController;
     private AuthController authController; // Sprint 2
     private LookupController lookupController;
     private CocController cocController;
     private SampleController sampleController;
     private TestController testController;
-    private UserController userController;
+    private AiController aiController;
     // other controllers
-    
+
     private Gson gson;
 
     @Override
     public void init() throws ServletException {
-       
-        
+        this.testTypeController = new TestTypeController();
+        this.authController = new AuthController();
+        this.lookupController = new LookupController();
+        this.cocController = new CocController();
+        this.sampleController = new SampleController();
+        this.testController = new TestController();
+        this.aiController = new AiController();
+        //instantiates other controllers
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         this.gson = new GsonBuilder()
-        	//not ignore null filed
-        	.serializeNulls()
-            // 1. Serialization (Backend -> Frontend): Convert LocalDateTime to a standard string.
-            .registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>) 
-                (src, typeOfSrc, context) -> new JsonPrimitive(src.format(formatter)))
-            // 2. Deserialization (Frontend -> Backend): Converts strings to LocalDateTime and tolerates empty strings.
-            .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) 
-                (json, typeOfT, context) -> {
-                    String datetime = json.getAsString();
-                    if (datetime == null || datetime.trim().isEmpty()) {
-                        return null;
-                    }
-                    return LocalDateTime.parse(datetime, formatter);
-                })
-            .create();
-        
-        this.testTypeController = new TestTypeController(this.gson);
-        this.authController = new AuthController(this.gson);
-        this.lookupController = new LookupController(this.gson);
-        this.cocController = new CocController(this.gson);
-        this.sampleController = new SampleController(this.gson);
-        this.testController = new TestController(this.gson);
-        this.userController = new UserController(this.gson);
-        //instantiates other controllers
-        
+                //not ignore null filed
+                .serializeNulls()
+                // 1. Serialization (Backend -> Frontend): Convert LocalDateTime to a standard string.
+                .registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>)
+                        (src, typeOfSrc, context) -> new JsonPrimitive(src.format(formatter)))
+                // 2. Deserialization (Frontend -> Backend): Converts strings to LocalDateTime and tolerates empty strings.
+                .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>)
+                        (json, typeOfT, context) -> {
+                            String datetime = json.getAsString();
+                            if (datetime == null || datetime.trim().isEmpty()) {
+                                return null;
+                            }
+                            return LocalDateTime.parse(datetime, formatter);
+                        })
+                .create();
+
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
-        
+
         try {
             if (pathInfo == null) {
                 writeJson(resp, RespResult.error(404, "Missing resource path."));
                 return;
             }
-            
+
             // --- Lookup Routing ---
             if (pathInfo.startsWith("/lookup")) {
                 if ("/lookup/test-types".equals(pathInfo)) {
@@ -96,7 +92,7 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-            
+
             // --- COC Routing ---
             if (pathInfo.startsWith("/cocs")) {
                 String subPath = pathInfo.substring("/cocs".length());
@@ -132,11 +128,11 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-            
+
             // --- Test Type Routing sprint 1---
             if (pathInfo.startsWith("/test-types")) {
                 String subPath = pathInfo.substring("/test-types".length());
-                
+
                 if (subPath.isEmpty() || "/".equals(subPath)) {
                     // 2：GET /api/test-types (Get Test Type List)
                     writeJson(resp, testTypeController.getTestTypeList());
@@ -159,7 +155,7 @@ public class ApiGatewayServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
-        
+
         try {
             if (pathInfo == null) {
                 writeJson(resp, RespResult.error(404, "Missing resource path."));
@@ -167,9 +163,9 @@ public class ApiGatewayServlet extends HttpServlet {
             }
 
             String body = readRequestBody(req);
-            
-            
-            
+
+
+
             // --- Auth Routing (Sprint 2) ---
             if (pathInfo.startsWith("/auth")) {
                 if ("/auth/login".equals(pathInfo)) {
@@ -182,10 +178,17 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-            
-            
-            
-            
+
+
+            // --- AI Chat Routing ---
+            if ("/ai-chat".equals(pathInfo)) {
+                // POST /api/ai-chat
+                AiChatReqDTO reqDto = gson.fromJson(body, AiChatReqDTO.class);
+                writeJson(resp, aiController.handleAiChat(reqDto));
+                return;
+            }
+
+
             // --- Test Type Routing (Sprint 1)  ---
             if (pathInfo.startsWith("/test-types")) {
                 String subPath = pathInfo.substring("/test-types".length());
@@ -195,7 +198,7 @@ public class ApiGatewayServlet extends HttpServlet {
                     TestTypeSaveReqDTO reqDto = gson.fromJson(body, TestTypeSaveReqDTO.class);
                     writeJson(resp, testTypeController.createTestType(reqDto));
                     return;
-                } 
+                }
                 // 4：POST /api/test-types/{id} (Update Test Type)
                 else {
                     int id = Integer.parseInt(subPath.replace("/", ""));
@@ -204,7 +207,7 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-            
+
             // --- Sample Routing ---
             if (pathInfo.startsWith("/samples")) {
                 String subPath = pathInfo.substring("/samples".length());
@@ -235,9 +238,9 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-            
+
             //other APIs routes...
-            
+
 
             writeJson(resp, RespResult.error(404, "API endpoint not found."));
         } catch (NumberFormatException e) {
@@ -248,7 +251,7 @@ public class ApiGatewayServlet extends HttpServlet {
     }
 
     // --- Technical Helpers ---
-    
+
     private String readRequestBody(HttpServletRequest req) throws IOException {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = req.getReader()) {
