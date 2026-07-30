@@ -6,6 +6,7 @@ import ca.sait.aris.lims.dao.SampleDao;
 import ca.sait.aris.lims.dao.TestDao;
 import ca.sait.aris.lims.dto.req.CocSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.*;
+import ca.sait.aris.lims.entity.Coc;
 import ca.sait.aris.lims.util.DBUtil;
 
 import java.sql.Connection;
@@ -86,8 +87,41 @@ public class CocService {
 
     // API 12: Get COC Details
     public CocDetailRespDTO getCocDetail(String cocId) throws Exception {
-        //TODO
-        return null;
+        try {
+            Coc entity = cocDao.selectCocById(cocId);
+            if (entity == null) {
+                return null;
+            }
+
+            CocDetailRespDTO dto = new CocDetailRespDTO();
+            dto.setCocId(entity.getCocId());
+            dto.setCocNumber(entity.getCocNumber());
+            dto.setProjectName(entity.getProjectName());
+            dto.setReportToName1(entity.getReportToName1());
+            dto.setReportToEmail1(entity.getReportToEmail1());
+            dto.setReportToName2(entity.getReportToName2());
+            dto.setReportToEmail2(entity.getReportToEmail2());
+            dto.setDateRequired(toLocalDateTime(entity.getDateRequired()));
+            dto.setIsRush(entity.getIsRush());
+            dto.setDateForRush(toLocalDateTime(entity.getDateForRush()));
+            dto.setReceivedBy(entity.getReceivedBy());
+            dto.setReceivedTime(toLocalDateTime(entity.getReceivedTime()));
+            dto.setRelinquishedBy(entity.getRelinquishedBy());
+            dto.setRelinquishedTime(toLocalDateTime(entity.getRelinquishedTime()));
+            dto.setNumberOfContainers(entity.getNumberOfContainers());
+            dto.setSpecialInstructions(entity.getSpecialInstructions());
+            dto.setCreatedByUserId(entity.getCreatedByUserId());
+            dto.setCreatedAt(toLocalDateTime(entity.getCreatedAt()));
+            dto.setStatus(entity.getStatus());
+
+            List<CocDetailSampleRespDTO> samples = sampleDao.selectSamplesByCocId(cocId);
+            dto.setSamples(samples);
+
+            return dto;
+
+        } finally {
+            DBUtil.closeConnection();
+        }
     }
 
     // --- Helpers ---
