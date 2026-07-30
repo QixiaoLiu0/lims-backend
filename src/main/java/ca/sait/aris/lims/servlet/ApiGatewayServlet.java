@@ -3,7 +3,8 @@ package ca.sait.aris.lims.servlet;
 import ca.sait.aris.lims.common.RespResult;
 import ca.sait.aris.lims.controller.*;
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
-import ca.sait.aris.lims.controller.ChatController;
+import ca.sait.aris.lims.controller.AiController;
+import ca.sait.aris.lims.dto.req.AiChatReqDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -34,7 +35,7 @@ public class ApiGatewayServlet extends HttpServlet {
     private CocController cocController;
     private SampleController sampleController;
     private TestController testController;
-    private ChatController chatController;
+    private AiController aiController;
     // other controllers
     
     private Gson gson;
@@ -47,7 +48,7 @@ public class ApiGatewayServlet extends HttpServlet {
         this.cocController = new CocController();
         this.sampleController = new SampleController();
         this.testController = new TestController();
-        this.chatController = new ChatController();
+        this.aiController = new AiController();
         //instantiates other controllers
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -176,24 +177,15 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-            
-            
-            // --- Chat Routing (AI query support) ---
-            if ("/chat".equals(pathInfo)) {
-                // POST /api/chat - body is raw user prompt, not JSON
-                writeJson(resp, chatController.chat(body));
-                return;
-            }
 
-            /// replace above with following in case JSON is expected
-            /*
-            if ("/chat".equals(pathInfo)) {
-                JsonObject chatBody = gson.fromJson(body, JsonObject.class);
-                String prompt = chatBody.get("prompt").getAsString();
-                writeJson(resp, chatController.chat(prompt));
+
+            // --- AI Chat Routing ---
+            if ("/ai-chat".equals(pathInfo)) {
+                // POST /api/ai-chat
+                AiChatReqDTO reqDto = gson.fromJson(body, AiChatReqDTO.class);
+                writeJson(resp, aiController.handleAiChat(reqDto));
                 return;
             }
-            */
 
             
             // --- Test Type Routing (Sprint 1)  ---

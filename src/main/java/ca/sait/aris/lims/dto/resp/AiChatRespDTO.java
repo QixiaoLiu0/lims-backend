@@ -2,12 +2,12 @@ package ca.sait.aris.lims.dto.resp;
 
 import java.util.List;
 
-public class ChatQueryRespDTO {
+public class AiChatRespDTO {
     private String toolUsed;
     private List<?> results;
-    private String message; // for cases where no tool matched, or an error occurred
+    private String message;
 
-    public ChatQueryRespDTO() {}
+    public AiChatRespDTO() {}
 
     public String getToolUsed() { return toolUsed; }
     public void setToolUsed(String toolUsed) { this.toolUsed = toolUsed; }
