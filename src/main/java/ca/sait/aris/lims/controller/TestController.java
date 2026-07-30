@@ -1,6 +1,7 @@
 package ca.sait.aris.lims.controller;
 
 import ca.sait.aris.lims.common.RespResult;
+import ca.sait.aris.lims.dto.req.TestSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.TestAssignedRespDTO;
 import ca.sait.aris.lims.dto.resp.TestResultRespDTO;
 import ca.sait.aris.lims.service.TestService;
@@ -19,13 +20,20 @@ public class TestController {
     	this.gson = gson;
     }
 
-
-    private final TestService testService = new TestService();
+    // Duplicate?
+    //private final TestService testService = new TestService();
 
     // API 6: Append Test to Sample
     public RespResult<TestAssignedRespDTO> appendTestToSample(String sampleId, String jsonBody) {
-        //TODO
-        return null;
+        try {
+            TestSaveReqDTO reqDto = gson.fromJson(jsonBody, TestSaveReqDTO.class);
+            TestAssignedRespDTO result = testService.appendTestToSample(sampleId, reqDto);
+            return RespResult.success(result);
+        } catch (Exception e) {
+            System.err.println("[TestController] appendTestToSample failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to append test to sample: " + sampleId);
+        }
     }
 
     // API 8: Delete Test Task

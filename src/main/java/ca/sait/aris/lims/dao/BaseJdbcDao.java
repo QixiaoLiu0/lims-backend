@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Abstract Data Access Object
@@ -188,6 +190,13 @@ public abstract class BaseJdbcDao {
         }
     }
 
+    /**
+     * Helper: convert java.util.Date to java.sql.Timestamp for safe JDBC binding.
+     * MySQL Connector/J does not reliably support setObject() with a raw java.util.Date.
+     */
+    protected Timestamp toTimestamp(Date date) {
+        return date == null ? null : new Timestamp(date.getTime());
+    }
   
     /**
      * Helper method: Safely inject parameters into PreparedStatement
