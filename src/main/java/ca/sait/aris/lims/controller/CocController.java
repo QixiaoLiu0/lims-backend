@@ -19,23 +19,20 @@ import com.google.gson.Gson;
 
 //sprint 3
 public class CocController {
-	
+	private final CocService cocService = new CocService();
 	private final Gson gson;
     
     public CocController(Gson gson){
     	this.gson = gson;
     }
 
-    private final CocService cocService = new CocService();
-
-    // why duplicate?
-    //private final CocService cocService = new CocService();
 
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class,
                     (JsonDeserializer<LocalDateTime>) (json, type, context) ->
                             LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .create();
+
 
     // API 4: Create COC
     public RespResult<CocIdRespDTO> createCoc(String jsonBody) {
@@ -54,18 +51,30 @@ public class CocController {
     public RespResult<Object> deleteCoc(String cocId) {
         try {
             cocService.deleteCoc(cocId);
+
             return RespResult.success();
+
         } catch (Exception e) {
             System.err.println("[CocController] deleteCoc failed: " + e.getMessage());
             e.printStackTrace();
+
             return RespResult.error("Failed to delete COC: " + cocId);
         }
     }
 
     // API 11: Get COCs for Dashboard
     public RespResult<List<DashboardCocRespDTO>> getDashboardCocs() {
-        //TODO
-        return null;
+        try {
+            List<DashboardCocRespDTO> list = cocService.getDashboardCocs();
+
+            return RespResult.success(list);
+
+        } catch (Exception e) {
+            System.err.println("[CocController] getDashboardCocs failed: " + e.getMessage());
+            e.printStackTrace();
+
+            return RespResult.error("Failed to retrieve dashboard COCs.");
+        }
     }
 
     // API 12: Get COC Details
