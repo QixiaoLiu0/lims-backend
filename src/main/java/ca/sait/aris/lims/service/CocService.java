@@ -6,6 +6,7 @@ import ca.sait.aris.lims.dao.SampleDao;
 import ca.sait.aris.lims.dao.TestDao;
 import ca.sait.aris.lims.dto.req.CocSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.*;
+import ca.sait.aris.lims.entity.Sample;
 import ca.sait.aris.lims.util.DBUtil;
 
 import java.sql.Connection;
@@ -80,8 +81,41 @@ public class CocService {
 
     // API 11: Avoids N+1 memory aggregation queries for the Dashboard
     public List<DashboardCocRespDTO> getDashboardCocs() throws Exception {
-        //TODO
-        return null;
+        try {
+            // 1. One query for all COCs + their aggregated test counts.
+            List<DashboardCocRespDTO> cocs = cocDao.selectDashboardCocs();
+            if (cocs.isEmpty()) {
+                return cocs;
+            }
+
+            // 2. One batched query for every Sample across all those COCs (N+1 defense).
+            List<String> cocIds = new ArrayList<>();
+            for (DashboardCocRespDTO coc : cocs) {
+                cocIds.add(coc.getCocId());
+            }
+            List<Sample> samples = sampleDao.selectSamplesByCocIds(cocIds);
+
+            // 3. Group samples by cocId in memory, then attach to each DTO.
+            Map<String, List<DashboardSampleRespDTO>> samplesByCocId = new HashMap<>();
+            for (Sample sample : samples) {
+                DashboardSampleRespDTO sampleDto = new DashboardSampleRespDTO();
+                sampleDto.setSampleId(sample.getSampleId());
+                sampleDto.setSampleClientId(sample.getSampleClientId());
+                sampleDto.setMatrix(sample.getMatrix());
+                samplesByCocId
+                        .computeIfAbsent(sample.getCocId(), k -> new ArrayList<>())
+                        .add(sampleDto);
+            }
+
+            for (DashboardCocRespDTO coc : cocs) {
+                coc.setSamples(samplesByCocId.getOrDefault(coc.getCocId(), new ArrayList<>()));
+            }
+
+            return cocs;
+
+        } finally {
+            DBUtil.closeConnection();
+        }
     }
 
     // API 12: Get COC Details
