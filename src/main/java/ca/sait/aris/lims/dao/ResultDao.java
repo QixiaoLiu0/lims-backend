@@ -23,7 +23,8 @@ public class ResultDao extends BaseJdbcDao {
     }
 
     public void deleteResultsByTestId(String testId) throws Exception {
-    	//TODO
+    	String sql = "DELETE FROM result WHERE test_id = ?";
+        executeUpdate(sql, testId);
     }
 
     // Join query: Retrieves blueprint metadata for Result place holders and Parameters.

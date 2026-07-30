@@ -13,7 +13,8 @@ public class CocDao extends BaseJdbcDao {
     }
 
     public void deleteCocById(String cocId) throws Exception {
-    	//TODO
+    	String sql = "DELETE FROM coc WHERE coc_id = ?";
+        executeUpdate(sql, cocId);
     }
 
     public Coc selectCocById(String cocId) throws Exception {

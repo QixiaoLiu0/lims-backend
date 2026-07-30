@@ -8,6 +8,8 @@ import ca.sait.aris.lims.service.TestTypeService;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 /**
  * Pure Java Controller for handling Analytical Test Type configurations.
  * Completely decoupled from Tomcat Servlet container dependencies.
@@ -15,7 +17,12 @@ import java.util.List;
 public class TestTypeController {
 
     private final TestTypeService testTypeService = new TestTypeService();
-
+    private final Gson gson;
+    
+    public TestTypeController(Gson gson){
+    	this.gson = gson;
+    }
+    
     
     /**
      * 1. Create Test Type (POST /api/test-types)

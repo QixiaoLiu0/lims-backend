@@ -3,13 +3,20 @@ package ca.sait.aris.lims.service;
 import ca.sait.aris.lims.dao.UserDAO;
 import ca.sait.aris.lims.dto.req.LoginReqDTO;
 import ca.sait.aris.lims.dto.req.ModifyPasswordReqDTO;
+import ca.sait.aris.lims.dto.req.NewUserReqDTO;
+import ca.sait.aris.lims.dto.req.UpdateRoleReqDTO;
 import ca.sait.aris.lims.dto.resp.AuthRespDTO;
+import ca.sait.aris.lims.dto.resp.UserRespDTO;
 import ca.sait.aris.lims.entity.User;
 import ca.sait.aris.lims.util.DBUtil;
 import ca.sait.aris.lims.util.TokenUtil;
 import ca.sait.aris.lims.util.UserContext;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public class UserService {
 
@@ -86,6 +93,101 @@ public class UserService {
             // 5. Commit the transaction.
             conn.commit();
 
+        } catch (Exception e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            DBUtil.closeConnection();
+        }
+    }
+    
+    
+    
+    /**
+     * Get all users
+     */
+	public List<UserRespDTO> getAllUsers() throws Exception{
+		Connection conn = null;
+	    try {
+	        conn = DBUtil.getConnection();
+	        List<User> users = userDao.selectAllUsers();
+	        
+	     
+	        List<UserRespDTO> dtoList = new ArrayList<>();
+	        
+	        for (User user : users) {
+	            UserRespDTO dto = new UserRespDTO();
+	            dto.setUserId(user.getUserId());
+	            dto.setEmail(user.getEmail());
+	            dto.setFirstName(user.getFirstName());
+	            dto.setLastName(user.getLastName());
+	            dto.setRole(user.getRole());
+	            dto.setMustChangePassword(user.getMustChangePassword());
+	            dto.setCreatedAt(user.getCreatedAt());
+	            
+	            dtoList.add(dto);
+	        }
+	        
+	        return dtoList;
+	    } finally {
+	        DBUtil.closeConnection();
+	    }
+	}
+
+	public void createUser(NewUserReqDTO req) throws Exception {
+        Connection conn = null;
+        try {
+            conn = DBUtil.getConnection();
+            conn.setAutoCommit(false);
+
+            // Extract the creator's ID from thread context
+            String contextUserId = UserContext.getUserId();
+            if (contextUserId == null) {
+                throw new Exception("Security Violation: Missing user context.");
+            }
+
+            // Construct new user
+            User newUser = new User();
+            newUser.setUserId(UUID.randomUUID().toString());
+            newUser.setCreatedByUserId(contextUserId);
+            newUser.setEmail(req.getEmail());
+            // Note: BCrypt 
+            newUser.setPwdHash(req.getPassword()); 
+            newUser.setFirstName(req.getFirstName());
+            newUser.setLastName(req.getLastName());
+            newUser.setRole(req.getRole());
+            newUser.setMustChangePassword(1);
+            newUser.setCreatedAt(new Date());
+
+            userDao.insertUser(newUser);
+
+            conn.commit();
+        } catch (Exception e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            DBUtil.closeConnection();
+        }
+    }
+
+	public void updateUserRole(String targetUserId, UpdateRoleReqDTO req) throws Exception {
+        Connection conn = null;
+        try {
+            conn = DBUtil.getConnection();
+            conn.setAutoCommit(false);
+
+            String contextUserId = UserContext.getUserId();
+            if (contextUserId == null) {
+                throw new Exception("Security Violation: Missing user context.");
+            }
+
+            userDao.updateUserRole(targetUserId, req.getRole());
+
+            conn.commit();
         } catch (Exception e) {
             if (conn != null) {
                 conn.rollback();
