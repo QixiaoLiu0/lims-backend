@@ -13,7 +13,8 @@ public class SampleDao extends BaseJdbcDao {
     }
 
     public void deleteSampleById(String sampleId) throws Exception {
-    	//TODO
+    	String sql = "DELETE FROM sample WHERE sample_id = ?";
+        executeUpdate(sql, sampleId);
     }
 
     public Sample selectSampleById(String sampleId) throws Exception {
@@ -24,8 +25,8 @@ public class SampleDao extends BaseJdbcDao {
 
     // Aggregate SQL: Query the Sample list and Test info statistics for the coc details page.
     public List<CocDetailSampleRespDTO> selectSamplesByCocId(String cocId) throws Exception {
-    	//TODO
-		return null;
+    	String sql = "SELECT sample_id FROM sample WHERE coc_id = ?";
+        return executeQuery(sql, CocDetailSampleRespDTO.class, cocId);
     }
 
     // Defense against N+1: Use the IN statement to retrieve all samples from multiple COCs at once.
