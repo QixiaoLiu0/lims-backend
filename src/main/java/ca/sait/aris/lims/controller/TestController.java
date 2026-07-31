@@ -5,6 +5,7 @@ import ca.sait.aris.lims.dto.req.TestSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.TestAssignedRespDTO;
 import ca.sait.aris.lims.dto.resp.TestResultRespDTO;
 import ca.sait.aris.lims.service.TestService;
+import ca.sait.aris.lims.dto.req.ResultBatchSaveReqDTO;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class TestController {
 	private final Gson gson;
     
     public TestController(){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
 
     // Duplicate?
@@ -64,7 +65,20 @@ public class TestController {
 
     // API 10: Batch Save Test Results
     public RespResult<Object> saveTestResults(String testId, String jsonBody) {
-        //TODO
-        return null;
+        try {
+            ResultBatchSaveReqDTO req =
+                    gson.fromJson(jsonBody, ResultBatchSaveReqDTO.class);
+
+            testService.saveTestResults(testId, req);
+            return RespResult.success();
+        } catch (Exception e) {
+            System.err.println(
+                    "[TestController] saveTestResults failed: " + e.getMessage()
+            );
+            e.printStackTrace();
+            return RespResult.error(
+                    "Failed to save test results: " + testId
+            );
+        }
     }
 }

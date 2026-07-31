@@ -15,13 +15,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.Collections;
 
 public class AiService {
 
     private static final String AI_SERVICE_URL = "http://localhost:5001/chat";
 
     private final TestDao testDao = new TestDao();
-    private final SampleDao sampleDao = new SampleDao();
     private final Gson gson = new Gson();
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -90,24 +90,43 @@ public class AiService {
 
         try {
             switch (toolName) {
-                case "get_latest_tests": {
-                    if (params == null || !params.has("limit")) {
-                        return degrade("Missing required information for that request.");
+                case "find_tests_by_id": {
+                    if (params == null
+                            || !params.has("testId")
+                            || params.get("testId").isJsonNull()) {
+                        return degrade("Missing test ID.");
                     }
-                    int limit = params.get("limit").getAsInt();
-                    List<Test> tests = testDao.selectLatestTests(limit);
-                    resp.setResults(tests);
-                    resp.setMessage("Found " + tests.size() + " recent test(s).");
+
+                    String testId = params.get("testId").getAsString();
+                    Test test = testDao.selectTestById(testId);
+
+                    if (test == null) {
+                        resp.setResults(Collections.emptyList());
+                        resp.setMessage("No test found with ID '" + testId + "'.");
+                        return resp;
+                    }
+
+                    // AiChatRespDTO expects a List, even though this query finds one test.
+                    resp.setResults(Collections.singletonList(test));
+                    resp.setMessage("Found test '" + testId + "'.");
                     return resp;
                 }
-                case "get_samples_by_status": {
-                    if (params == null || !params.has("status")) {
-                        return degrade("Missing required information for that request.");
+
+                case "count_incomplete_tests_by_sampleid": {
+                    if (params == null
+                            || !params.has("sampleId")
+                            || params.get("sampleId").isJsonNull()) {
+                        return degrade("Missing sample ID.");
                     }
-                    String status = params.get("status").getAsString();
-                    List<Sample> samples = sampleDao.selectSamplesByStatus(status);
-                    resp.setResults(samples);
-                    resp.setMessage("Found " + samples.size() + " sample(s) with status '" + status + "'.");
+
+                    String sampleId = params.get("sampleId").getAsString();
+                    int incompleteCount =
+                            testDao.countIncompleteTestsBySampleId(sampleId);
+
+                    // Results is List<?>; wrap the scalar count in a one-item list.
+                    resp.setResults(Collections.singletonList(incompleteCount));
+                    resp.setMessage("Found " + incompleteCount
+                            + " incomplete test(s) for sample '" + sampleId + "'.");
                     return resp;
                 }
                 default: {

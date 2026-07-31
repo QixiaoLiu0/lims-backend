@@ -16,7 +16,7 @@ public class LookupController {
     private final Gson gson;
     
     public LookupController(){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
 
     // API 1: Get Active Test Types

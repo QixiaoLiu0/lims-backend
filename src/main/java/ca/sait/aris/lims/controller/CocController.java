@@ -21,7 +21,7 @@ public class CocController {
 	private final Gson gson;
     
     public CocController(){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
 
 

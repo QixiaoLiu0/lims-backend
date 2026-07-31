@@ -7,6 +7,11 @@ import ca.sait.aris.lims.dto.req.ResultBatchSaveReqDTO;
 import ca.sait.aris.lims.dto.req.TestSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.TestAssignedRespDTO;
 import ca.sait.aris.lims.dto.resp.TestResultRespDTO;
+import ca.sait.aris.lims.dao.SampleDao;
+import ca.sait.aris.lims.dao.CocDao;
+import ca.sait.aris.lims.dto.req.ResultUpdateReqDTO;
+import ca.sait.aris.lims.entity.Sample;
+
 
 import ca.sait.aris.lims.entity.Parameter;
 import ca.sait.aris.lims.entity.Result;
@@ -26,6 +31,8 @@ public class TestService {
     private final TestDao testDao = new TestDao();
     private final ResultDao resultDao = new ResultDao();
     private final ParameterDAO parameterDao = new ParameterDAO();
+    private final SampleDao sampleDao = new SampleDao();
+    private final CocDao cocDao = new CocDao();
 
 
     // API 6: Add a Test and dynamically calculate the Run Number, generating placeholders.
@@ -141,6 +148,86 @@ public class TestService {
 
     // API 10: Batch saving of Results & Status Rollup
     public void saveTestResults(String testId, ResultBatchSaveReqDTO req) throws Exception {
-        //TODO
+        Connection conn = DBUtil.getConnection();
+        String currentUserId = UserContext.getUserId();
+        Timestamp now = new Timestamp(new Date().getTime());
+
+        try {
+            conn.setAutoCommit(false);
+
+            List<Object[]> paramsList = new ArrayList<>();
+
+            if (req.getResults() != null) {
+                for (ResultUpdateReqDTO result : req.getResults()) {
+                    paramsList.add(new Object[] {
+                            result.getValue(),
+                            result.getQualifier(),
+                            currentUserId,
+                            now,
+                            result.getResultId()
+                    });
+                }
+            }
+
+            resultDao.batchUpdateResults(paramsList);
+
+            boolean isComplete = Boolean.TRUE.equals(req.getIsComplete());
+
+            // Draft saves remain in the application's default active status.
+            testDao.updateTestStatus(
+                    testId,
+                    isComplete ? "Completed" : "In-Progress"
+            );
+
+            // A draft must never advance Sample or COC status.
+            if (isComplete) {
+                Test test = testDao.selectTestById(testId);
+
+                if (test == null) {
+                    throw new IllegalArgumentException("Test not found: " + testId);
+                }
+
+                Sample sample = sampleDao.selectSampleById(test.getSampleId());
+
+                if (sample == null) {
+                    throw new IllegalStateException(
+                            "Sample not found for test: " + testId
+                    );
+                }
+
+                // Complete Sample only when every test under it is completed.
+                if (testDao.countIncompleteTestsBySampleId(sample.getSampleId()) == 0) {
+                    sampleDao.updateSampleStatus(
+                            sample.getSampleId(),
+                            "Completed"
+                    );
+
+                    // Complete COC only when every sample under it is completed.
+                    if (sampleDao.countIncompleteSamplesByCocId(sample.getCocId()) == 0) {
+                        cocDao.updateCocStatus(
+                                sample.getCocId(),
+                                "Completed"
+                        );
+                    }
+                }
+            }
+
+            conn.commit();
+        } catch (Exception e) {
+            try {
+                conn.rollback();
+            } catch (Exception rollbackEx) {
+                System.err.println(
+                        "[TestService] Rollback failed: " + rollbackEx.getMessage()
+                );
+            }
+            throw e;
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (Exception ignored) {
+            }
+            DBUtil.closeConnection();
+        }
     }
 }

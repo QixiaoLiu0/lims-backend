@@ -18,7 +18,7 @@ public class SampleController {
 	private final Gson gson;
     
     public SampleController(){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
 
     private final SampleService sampleService = new SampleService();

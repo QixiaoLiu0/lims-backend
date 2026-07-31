@@ -20,7 +20,7 @@ public class TestTypeController {
     private final Gson gson;
     
     public TestTypeController(){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
     
     
