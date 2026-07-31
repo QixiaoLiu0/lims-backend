@@ -1,19 +1,19 @@
 package ca.sait.aris.lims.servlet;
 
 import ca.sait.aris.lims.common.RespResult;
-
-import ca.sait.aris.lims.controller.*;
-
-
+import ca.sait.aris.lims.controller.AuthController;
+import ca.sait.aris.lims.controller.CocController;
+import ca.sait.aris.lims.controller.LookupController;
+import ca.sait.aris.lims.controller.SampleController;
+import ca.sait.aris.lims.controller.TestController;
+import ca.sait.aris.lims.controller.TestTypeController;
+import ca.sait.aris.lims.controller.UserController;
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
-import ca.sait.aris.lims.controller.AiController;
-import ca.sait.aris.lims.dto.req.AiChatReqDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
-import com.google.gson.JsonObject; // for if the JSON stuff at line 190 is needed
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -38,28 +38,14 @@ public class ApiGatewayServlet extends HttpServlet {
     private CocController cocController;
     private SampleController sampleController;
     private TestController testController;
-
-    private AiController aiController;
-
     private UserController userController;
-
     // other controllers
     
     private Gson gson;
 
     @Override
     public void init() throws ServletException {
-        this.testTypeController = new TestTypeController();
-        this.authController = new AuthController();
-        this.lookupController = new LookupController();
-        this.cocController = new CocController();
-        this.sampleController = new SampleController();
-        this.testController = new TestController();
-        this.aiController = new AiController();
-        //instantiates other controllers
-
        
-
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         this.gson = new GsonBuilder()
@@ -196,16 +182,9 @@ public class ApiGatewayServlet extends HttpServlet {
                     return;
                 }
             }
-
-
-            // --- AI Chat Routing ---
-            if ("/ai-chat".equals(pathInfo)) {
-                // POST /api/ai-chat
-                AiChatReqDTO reqDto = gson.fromJson(body, AiChatReqDTO.class);
-                writeJson(resp, aiController.handleAiChat(reqDto));
-                return;
-            }
-
+            
+            
+            
             
             // --- Test Type Routing (Sprint 1)  ---
             if (pathInfo.startsWith("/test-types")) {
