@@ -1,33 +1,53 @@
 package ca.sait.aris.lims.controller;
 
 import ca.sait.aris.lims.common.RespResult;
+import ca.sait.aris.lims.dto.req.TestSaveReqDTO;
 import ca.sait.aris.lims.dto.resp.TestAssignedRespDTO;
 import ca.sait.aris.lims.dto.resp.TestResultRespDTO;
 import ca.sait.aris.lims.service.TestService;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+
 //sprint 3
 public class TestController {
+  private final TestService testService = new TestService();
 
-    private final TestService testService = new TestService();
+	private final Gson gson;
+    
+    public TestController(Gson gson){
+    	this.gson = gson;
+    }
+
+    // Duplicate?
+    //private final TestService testService = new TestService();
 
     // API 6: Append Test to Sample
     public RespResult<TestAssignedRespDTO> appendTestToSample(String sampleId, String jsonBody) {
-        //TODO
-        return null;
+        try {
+            TestSaveReqDTO reqDto = gson.fromJson(jsonBody, TestSaveReqDTO.class);
+            TestAssignedRespDTO result = testService.appendTestToSample(sampleId, reqDto);
+            return RespResult.success(result);
+        } catch (Exception e) {
+            System.err.println("[TestController] appendTestToSample failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to append test to sample: " + sampleId);
+        }
     }
 
     // API 8: Delete Test Task
     public RespResult<Object> deleteTest(String testId) {
-        try {
+
+    	try {
             testService.deleteTest(testId);
             return RespResult.success();
-        } catch (Exception e) {
+      } catch (Exception e) {
             System.err.println("[TestController] deleteTest failed: " + e.getMessage());
             e.printStackTrace();
             return RespResult.error("Failed to delete test: " + testId);
-        }
+       }
+
     }
 
     // API 9: Get Test Results

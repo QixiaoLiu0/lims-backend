@@ -1,7 +1,10 @@
 package ca.sait.aris.lims.servlet;
 
 import ca.sait.aris.lims.common.RespResult;
+
 import ca.sait.aris.lims.controller.*;
+
+
 import ca.sait.aris.lims.dto.req.TestTypeSaveReqDTO;
 import ca.sait.aris.lims.controller.AiController;
 import ca.sait.aris.lims.dto.req.AiChatReqDTO;
@@ -35,7 +38,11 @@ public class ApiGatewayServlet extends HttpServlet {
     private CocController cocController;
     private SampleController sampleController;
     private TestController testController;
+
     private AiController aiController;
+
+    private UserController userController;
+
     // other controllers
     
     private Gson gson;
@@ -50,6 +57,9 @@ public class ApiGatewayServlet extends HttpServlet {
         this.testController = new TestController();
         this.aiController = new AiController();
         //instantiates other controllers
+
+       
+
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         this.gson = new GsonBuilder()
@@ -68,6 +78,15 @@ public class ApiGatewayServlet extends HttpServlet {
                     return LocalDateTime.parse(datetime, formatter);
                 })
             .create();
+        
+        this.testTypeController = new TestTypeController(this.gson);
+        this.authController = new AuthController(this.gson);
+        this.lookupController = new LookupController(this.gson);
+        this.cocController = new CocController(this.gson);
+        this.sampleController = new SampleController(this.gson);
+        this.testController = new TestController(this.gson);
+        this.userController = new UserController(this.gson);
+        //instantiates other controllers
         
     }
 
