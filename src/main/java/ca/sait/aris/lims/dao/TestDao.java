@@ -79,11 +79,4 @@ public class TestDao extends BaseJdbcDao {
 		return 0;
         
     }
-
-    // AI chatbot support: retrieve the N most recently created tests
-    public List<Test> selectLatestTests(int limit) throws Exception {
-        String sql = "SELECT test_id, sample_id, test_type_id, status, created_at, run_number, retest_reason " +
-                "FROM test ORDER BY created_at DESC LIMIT ?";
-        return executeQuery(sql, Test.class, limit);
-    }
 }
