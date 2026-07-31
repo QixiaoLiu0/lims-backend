@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 public class SampleController {
 	private final Gson gson;
     
-    public SampleController(Gson gson){
+    public SampleController(){
     	this.gson = gson;
     }
 

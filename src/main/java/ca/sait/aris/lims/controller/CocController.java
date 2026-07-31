@@ -15,14 +15,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 //sprint 3
 public class CocController {
 	private final CocService cocService = new CocService();
 	private final Gson gson;
     
-    public CocController(Gson gson){
+    public CocController(){
     	this.gson = gson;
     }
 
