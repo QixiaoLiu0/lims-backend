@@ -52,9 +52,13 @@ public class SampleDao extends BaseJdbcDao {
     }
 
     public Sample selectSampleById(String sampleId) throws Exception {
-    	//TODO
-		return null;
-        
+        String sql = "SELECT sample_id, coc_id, sample_type_id, sample_client_id, " +
+                "sampled_time, sampling_point, matrix, number_of_containers, " +
+                "remarks, initial_volume, remaining_volume, created_at, " +
+                "is_filtered, is_preserved, is_filtered_and_preserved, status " +
+                "FROM sample WHERE sample_id = ?";
+
+        return executeQueryForObject(sql, Sample.class, sampleId);
     }
 
     // Aggregate SQL: Query the Sample list and Test info statistics for the coc details page.
@@ -113,13 +117,17 @@ public class SampleDao extends BaseJdbcDao {
 
     // status Bubble Update
     public void updateSampleStatus(String sampleId, String status) throws Exception {
-    	//TODO
+        String sql = "UPDATE sample SET status = ? WHERE sample_id = ?";
+        executeUpdate(sql, status, sampleId);
     }
 
     // Check if there are any incomplete Samples under a given COC.
     public int countIncompleteSamplesByCocId(String cocId) throws Exception {
-    	//TODO
-		return 0;
-        
+        String sql = "SELECT COUNT(*) FROM sample " +
+                "WHERE coc_id = ? " +
+                "AND (status IS NULL OR status <> 'Completed')";
+
+        Integer count = executeQueryForScalar(sql, Integer.class, cocId);
+        return count == null ? 0 : count;
     }
 }

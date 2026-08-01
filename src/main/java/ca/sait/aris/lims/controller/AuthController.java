@@ -16,7 +16,7 @@ public class AuthController {
     private final Gson gson;
     
     public AuthController(){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
 
 

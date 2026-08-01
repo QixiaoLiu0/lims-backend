@@ -33,9 +33,11 @@ public class TestDao extends BaseJdbcDao {
     }
 
     public Test selectTestById(String testId) throws Exception {
-    	//TODO
-		return null;
+        String sql = "SELECT test_id, sample_id, test_type_id, status, " +
+                "created_at, run_number, retest_reason " +
+                "FROM test WHERE test_id = ?";
 
+        return executeQueryForObject(sql, Test.class, testId);
     }
 
     // Query the Test list for the Sample details page.
@@ -71,12 +73,17 @@ public class TestDao extends BaseJdbcDao {
 
     // status Bubble Update
     public void updateTestStatus(String testId, String status) throws Exception {
-    	//TODO
+        String sql = "UPDATE test SET status = ? WHERE test_id = ?";
+        executeUpdate(sql, status, testId);
     }
 
     // Check if there are any incomplete tests under a given Sample.
     public int countIncompleteTestsBySampleId(String sampleId) throws Exception {
-		return 0;
-        
+        String sql = "SELECT COUNT(*) FROM test " +
+                "WHERE sample_id = ? " +
+                "AND (status IS NULL OR status <> 'Completed')";
+
+        Integer count = executeQueryForScalar(sql, Integer.class, sampleId);
+        return count == null ? 0 : count;
     }
 }

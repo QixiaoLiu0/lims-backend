@@ -15,7 +15,7 @@ public class UserController {
 	private final Gson gson;
 	
 	public UserController(Gson gson){
-    	this.gson = gson;
+    	this.gson = new Gson();
     }
 	
 	

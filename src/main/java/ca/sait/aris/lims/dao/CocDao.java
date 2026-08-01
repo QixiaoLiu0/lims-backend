@@ -102,6 +102,7 @@ public class CocDao extends BaseJdbcDao {
 
     // 'status' Bubble Update
     public void updateCocStatus(String cocId, String status) throws Exception {
-    	//TODO
+        String sql = "UPDATE coc SET status = ? WHERE coc_id = ?";
+        executeUpdate(sql, status, cocId);
     }
 }

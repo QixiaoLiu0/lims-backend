@@ -26,7 +26,15 @@ public class ResultDao extends BaseJdbcDao {
      * @param paramsList Each Object[] contains: [value, qualifier, updated_by_user_id, updated_at, result_id]
      */
     public void batchUpdateResults(List<Object[]> paramsList) throws Exception {
-    	//TODO
+    	if (paramsList == null || paramsList.isEmpty()) {
+            return;
+        }
+
+        String sql = "UPDATE result " +
+                "SET value = ?, qualifier = ?, " +
+                "updated_by_user_id = ?, updated_at = ? " +
+                "WHERE result_id = ?";
+        executeBatchUpdate(sql, paramsList);
     }
 
     public void deleteResultsByTestId(String testId) throws Exception {
