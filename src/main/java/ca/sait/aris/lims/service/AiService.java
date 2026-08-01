@@ -1,20 +1,16 @@
 package ca.sait.aris.lims.service;
 
-import ca.sait.aris.lims.dao.SampleDao;
 import ca.sait.aris.lims.dao.TestDao;
 import ca.sait.aris.lims.dto.resp.AiChatRespDTO;
-import ca.sait.aris.lims.entity.Sample;
 import ca.sait.aris.lims.entity.Test;
 import ca.sait.aris.lims.util.DBUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 public class AiService {
@@ -23,37 +19,60 @@ public class AiService {
 
     private final TestDao testDao = new TestDao();
     private final Gson gson = new Gson();
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
-            .build();
+   
 
     public AiChatRespDTO processAiQuery(String userPrompt) throws Exception {
-        // 1. Call the Python NLU microservice (translation only — no DB access on its side)
+        
+        // 1. Call the Python NLU microservice (translation only - no DB access on its side)
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("prompt", userPrompt);
+        String jsonInputString = gson.toJson(requestBody);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(AI_SERVICE_URL))
-                .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(30))
-                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(requestBody)))
-                .build();
+        String responseBodyString = null;
+        int statusCode = 0;
 
-        HttpResponse<String> response;
         try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            java.net.URL url = new java.net.URL(AI_SERVICE_URL);
+            java.net.HttpURLConnection con = (java.net.HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setDoOutput(true);
+            con.setConnectTimeout(5000); //  connectTimeout
+            con.setReadTimeout(30000);   // timeout(Duration.ofSeconds(30))
+
+            // Write to request body 
+            try (OutputStream os = con.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            statusCode = con.getResponseCode();
+
+            // if successful, read response body
+            if (statusCode == 200) {
+                StringBuilder response = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                }
+                responseBodyString = response.toString();
+            }
+
         } catch (Exception e) {
             return degrade("AI service is currently unavailable. Please try again shortly.");
         }
 
-        if (response.statusCode() != 200) {
+        if (statusCode != 200) {
             return degrade("AI service returned an unexpected error.");
         }
 
         // 2. Parse the AI service's response
         JsonObject aiResponse;
         try {
-            aiResponse = gson.fromJson(response.body(), JsonObject.class);
+            aiResponse = gson.fromJson(responseBodyString, JsonObject.class);
         } catch (Exception e) {
             return degrade("AI service returned an unreadable response.");
         }
