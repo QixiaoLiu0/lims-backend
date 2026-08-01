@@ -65,7 +65,16 @@ public class SampleController {
 
     // API 13: Get Sample Details
     public RespResult<SampleDetailRespDTO> getSampleDetail(String sampleId) {
-        //TODO
-        return null;
+        try {
+            SampleDetailRespDTO detail = sampleService.getSampleDetail(sampleId);
+            if (detail == null) {
+                return RespResult.error(404, "Sample not found: " + sampleId);
+            }
+            return RespResult.success(detail);
+        } catch (Exception e) {
+            System.err.println("[SampleController] getSampleDetail failed: " + e.getMessage());
+            e.printStackTrace();
+            return RespResult.error("Failed to retrieve sample detail: " + sampleId);
+        }
     }
 }

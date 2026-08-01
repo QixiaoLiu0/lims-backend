@@ -156,8 +156,43 @@ public class SampleService {
 
     // API 13: Get Sample Details
     public SampleDetailRespDTO getSampleDetail(String sampleId) throws Exception {
-        //TODO
-        return null;
+        try {
+            // 1. Query the Sample entity
+            Sample sample = sampleDao.selectSampleById(sampleId);
+            if (sample == null) {
+                return null;
+            }
+
+            // 2. Translate Sample entity to DTO
+            SampleDetailRespDTO dto = new SampleDetailRespDTO();
+            dto.setSampleId(sample.getSampleId());
+            dto.setCocId(sample.getCocId());
+            dto.setSampleTypeId(sample.getSampleTypeId());
+            dto.setSampleClientId(sample.getSampleClientId());
+            dto.setSampledTime(toLocalDateTime(sample.getSampledTime()));
+            dto.setSamplingPoint(sample.getSamplingPoint());
+            dto.setMatrix(sample.getMatrix());
+            dto.setNumberOfContainers(sample.getNumberOfContainers());
+            dto.setRemarks(sample.getRemarks());
+            dto.setInitialVolume(sample.getInitialVolume());
+            dto.setRemainingVolume(sample.getRemainingVolume());
+            dto.setCreatedAt(toLocalDateTime(sample.getCreatedAt()));
+            dto.setIsFiltered(sample.getIsFiltered());
+            dto.setIsPreserved(sample.getIsPreserved());
+            dto.setIsFilteredAndPreserved(sample.getIsFilteredAndPreserved());
+            dto.setStatus(sample.getStatus());
+
+            // 3. Query the list of Tests under this Sample
+            List<SampleDetailTestRespDTO> tests = testDao.selectTestsBySampleId(sampleId);
+
+            // 4. Mount the tests list
+            dto.setTests(tests);
+
+            return dto;
+
+        } finally {
+            DBUtil.closeConnection();
+        }
     }
 
     //helpers
