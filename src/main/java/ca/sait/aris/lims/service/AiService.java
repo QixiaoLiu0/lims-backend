@@ -111,12 +111,12 @@ public class AiService {
             switch (toolName) {
                 case "find_tests_by_id": {
                     if (params == null
-                            || !params.has("testId")
-                            || params.get("testId").isJsonNull()) {
+                            || !params.has("id")
+                            || params.get("id").isJsonNull()) {
                         return degrade("Missing test ID.");
                     }
 
-                    String testId = params.get("testId").getAsString();
+                    String testId = params.get("id").getAsString();
                     Test test = testDao.selectTestById(testId);
 
                     if (test == null) {
@@ -133,12 +133,12 @@ public class AiService {
 
                 case "count_incomplete_tests_by_sampleid": {
                     if (params == null
-                            || !params.has("sampleId")
-                            || params.get("sampleId").isJsonNull()) {
+                            || !params.has("sample_id")
+                            || params.get("sample_id").isJsonNull()) {
                         return degrade("Missing sample ID.");
                     }
 
-                    String sampleId = params.get("sampleId").getAsString();
+                    String sampleId = params.get("sample_id").getAsString();
                     int incompleteCount =
                             testDao.countIncompleteTestsBySampleId(sampleId);
 
